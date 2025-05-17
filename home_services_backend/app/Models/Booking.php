@@ -24,6 +24,9 @@ class Booking extends Model
     public function service() {
         return $this->belongsTo(Service::class);
     }
+    public function promotion() {
+        return $this->belongsTo(Promotion::class);
+    }
 
     public function payment() {
         return $this->hasOne(Payment::class);
