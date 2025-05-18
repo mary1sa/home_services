@@ -37,11 +37,14 @@ public function index()
         'address' => 'nullable|string|max:255',
         'role' => 'sometimes|in:user,tasker,admin',
 
-        'city' => 'required_if:role,tasker|string|max:255',
-        'cin' => 'required_if:role,tasker|string|max:255',
-        'certificate_police' => 'required_if:role,tasker|string|max:255',
-        'certificate_police_date' => 'required_if:role,tasker|date',
-        'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+       'city'       => 'required|string',
+        'country'    => 'nullable|string',
+        'cin'        => 'required|file|mimes:jpg,jpeg,png',
+        'certificate_police' => 'required|file|mimes:jpg,jpeg,png',
+        'certificate_police_date' => 'required|date',
+        'bio'        => 'nullable|string',
+        'experience' => 'nullable|integer',
+        'photo'      => 'nullable|file|mimes:jpg,jpeg,png',
     ]);
 
     $user = User::create([
@@ -157,5 +160,12 @@ public function index()
     }
 
    
+
+
+
+
+
+
+    
    
 }

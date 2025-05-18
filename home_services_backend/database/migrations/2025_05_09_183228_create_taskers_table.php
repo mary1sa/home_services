@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('experience')->nullable();
             $table->string('photo')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->string('rejection_reason')->nullable();
             $table->timestamps();
         });
     }

@@ -77,11 +77,22 @@ const currentPath = location.pathname;
           title: "Add User", 
           path: "users/create",
           icon: <FiUserPlus className="submenu-icon" />
+        }
+      ]
+    },
+     { 
+      title: "Tasker Management", 
+      icon: <FiUsers />,
+      submenus: [
+        { 
+          title: " All Taskers", 
+          path: "taskers",
+          icon: <FiList className="submenu-icon" />
         },
         { 
-          title: "User Roles", 
-          path: "roles",
-          icon: <FiKey className="submenu-icon" />
+          title: "Request tasker", 
+          path: "taskers/pending",
+          icon: <FiUserPlus className="submenu-icon" />
         }
       ]
     },

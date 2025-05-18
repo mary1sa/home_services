@@ -103,4 +103,53 @@ class TaskerController extends Controller
 
         return response()->json(['message' => 'Tasker deleted successfully']);
     }
+
+
+
+
+
+
+    public function pending()
+{
+    return response()->json(Tasker::with('user')
+        ->where('status', 'pending')
+        ->get());
+}
+
+
+  public function approve($id)
+    {
+        $tasker = Tasker::findOrFail($id);
+        
+        $tasker->update([
+            'status' => 'approved',
+            'rejection_reason' => null 
+        ]);
+
+        return response()->json([
+            'message' => 'Tasker approved successfully',
+            'tasker' => $tasker
+        ]);
+    }
+
+    public function reject(Request $request, $id)
+    {
+        $request->validate([
+            'rejection_reason' => 'required|string|max:500'
+        ]);
+
+        $tasker = Tasker::findOrFail($id);
+        
+        $tasker->update([
+            'status' => 'rejected',
+            'rejection_reason' => $request->rejection_reason
+        ]);
+
+        return response()->json([
+            'message' => 'Tasker rejected successfully',
+            'tasker' => $tasker
+        ]);
+    }
+
+
 }

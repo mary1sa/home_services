@@ -16,6 +16,8 @@ import UserList from './Components/AdminDashboard/UsersManagement/UserList';
 import UserCreate from './Components/AdminDashboard/UsersManagement/UserCreate';
 import UserShow from './Components/AdminDashboard/UsersManagement/UserShow';
 import UserEdit from './Components/AdminDashboard/UsersManagement/UserEdit';
+import TaskerList from './Components/AdminDashboard/TaskerManagement/TaskerList';
+import PendingTaskers from './Components/AdminDashboard/TaskerManagement/PendingTaskers';
 
 
 
@@ -38,15 +40,14 @@ function App() {
             </ProtectedRoute>
           }
         >
+         {/*Users management*/}
         <Route path='users' element={<UserList />} />
   <Route path="users/create" element={<UserCreate />} />
   <Route path="users/:id" element={<UserShow />} />
   <Route path="users/:id/edit" element={<UserEdit />} />
-          {/* <Route path="tasks" element={<TaskManagement />}>
-            <Route index element={<TaskList />} />
-            <Route path="create" element={<CreateTask />} />
-            <Route path=":taskId" element={<TaskDetail />} />
-          </Route> */}
+  {/*Users management*/}
+  <Route path="taskers" element={<TaskerList />} />
+        <Route path="taskers/pending" element={<PendingTaskers />} />
         </Route>
 
 

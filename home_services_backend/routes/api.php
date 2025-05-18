@@ -57,6 +57,9 @@ Route::apiResource('companies', CompanyController::class);
 
 // taskers
 Route::apiResource('taskers', TaskerController::class);
+Route::get('taskerspending', [TaskerController::class, 'pending']);
+    Route::post('taskersapprove/{id}', [TaskerController::class, 'approve']);
+    Route::post('taskersreject/{id}', [TaskerController::class, 'reject']);
 
 // categories
 Route::apiResource('categories', CategoryController::class);
