@@ -54,6 +54,8 @@ class AuthController extends Controller
         'bio'        => 'nullable|string',
         'experience' => 'nullable|integer',
         'photo'      => 'nullable|file|mimes:jpg,jpeg,png',
+        'role'       => 'tasker'
+
     ]);
 
     if ($validator->fails()) return response()->json($validator->errors(), 422);

@@ -34,7 +34,7 @@ use App\Http\Controllers\PortfolioImageController;
 // })->middleware('auth:sanctum');
 
 Route::post('register', [AuthController::class, 'registerUser']);
-Route::post('register/tasker', [AuthController::class, 'registerTasker']);
+Route::post('register-tasker', [AuthController::class, 'registerTasker']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api');
 Route::get('me', [AuthController::class, 'me'])->middleware('auth:api');
@@ -42,19 +42,24 @@ Route::get('me', [AuthController::class, 'me'])->middleware('auth:api');
 
 
 //users
-Route::get('/users/approved-taskers', [UserController::class, 'getApprovedTaskersAndNonTaskers']);
+Route::prefix('users')->group(function () {
+    Route::get('/', [UserController::class, 'index']);
+    Route::post('/', [UserController::class, 'store']);
+     Route::get('/{id}', [UserController::class, 'show']);
 
-Route::post('/users', [UserController::class, 'store']);
+    Route::put('/{id}', [UserController::class, 'update']);
+    Route::delete('/{id}', [UserController::class, 'destroy']);
+});
 
-Route::post('/users/{id}', [UserController::class, 'update']); 
-
-Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
 //companies
 Route::apiResource('companies', CompanyController::class);
 
 // taskers
 Route::apiResource('taskers', TaskerController::class);
+Route::get('taskerspending', [TaskerController::class, 'pending']);
+    Route::post('taskersapprove/{id}', [TaskerController::class, 'approve']);
+    Route::post('taskersreject/{id}', [TaskerController::class, 'reject']);
 
 // categories
 Route::apiResource('categories', CategoryController::class);

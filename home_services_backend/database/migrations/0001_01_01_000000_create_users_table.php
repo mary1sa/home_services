@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('is_online')->default(false);
             $table->enum('role', ['user', 'tasker', 'admin'])->default('user');
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
