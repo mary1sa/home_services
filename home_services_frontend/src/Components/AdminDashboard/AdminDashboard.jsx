@@ -75,7 +75,7 @@ const currentPath = location.pathname;
         },
         { 
           title: "Add User", 
-          path: "createuser",
+          path: "users/create",
           icon: <FiUserPlus className="submenu-icon" />
         },
         { 

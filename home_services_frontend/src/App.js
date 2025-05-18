@@ -12,6 +12,10 @@ import Login from './Components/Auth/Login';
 import Home from './Components/Home';
 import RegisterTasker from './Components/Auth/RegisterTasker';
 import RegisterUser from './Components/Auth/RegisterUser';
+import UserList from './Components/AdminDashboard/UsersManagement/UserList';
+import UserCreate from './Components/AdminDashboard/UsersManagement/UserCreate';
+import UserShow from './Components/AdminDashboard/UsersManagement/UserShow';
+import UserEdit from './Components/AdminDashboard/UsersManagement/UserEdit';
 
 
 
@@ -21,7 +25,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<RegisterTasker />} />
+        <Route path="/register-tasker" element={<RegisterTasker />} />
                 <Route path="/register" element={<RegisterUser />} />
 
 
@@ -34,6 +38,10 @@ function App() {
             </ProtectedRoute>
           }
         >
+        <Route path='users' element={<UserList />} />
+  <Route path="users/create" element={<UserCreate />} />
+  <Route path="users/:id" element={<UserShow />} />
+  <Route path="users/:id/edit" element={<UserEdit />} />
           {/* <Route path="tasks" element={<TaskManagement />}>
             <Route index element={<TaskList />} />
             <Route path="create" element={<CreateTask />} />
