@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosInstance';
 import { FiEye, FiEdit2, FiTrash2, FiUserPlus, FiCheck, FiCheckSquare, FiSearch } from 'react-icons/fi';
+import Loading from '../../common/Loading';
 // import './UserList.css'; 
 
 const TaskerList = () => {
@@ -124,7 +125,7 @@ return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesC
     }
   };
 
-  if (loading) return <div className="loading">Loading taskers...</div>;
+  if (loading) return <Loading/>;
   if (error) return <div className="error">Error: {error}</div>;
 
   return (

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosInstance';
 import { FiEye, FiEdit2, FiTrash2, FiUserPlus, FiCheck, FiCheckSquare, FiSearch } from 'react-icons/fi';
 import './UserList.css';
+import Loading from '../../common/Loading';
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -137,7 +138,7 @@ const UserList = () => {
     }
   };
 
-  if (loading) return <div className="loading">Loading users...</div>;
+  if (loading) return <Loading/>;
   if (error) return <div className="error">Error: {error}</div>;
 
   // const isAdmin = currentUser?.role === 'admin';

@@ -1,0 +1,58 @@
+.company-loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 70vh;  
+  width: 100%;    
+}
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 200px;
+  padding: 1.5rem;
+}
+
+.loading-logo {
+  height: 3.5rem;
+  width: auto;
+  object-fit: contain;
+}
+
+.company-name {
+  color: #333333;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, 
+               Ubuntu, Cantarell, sans-serif;
+}
+
+.loading-line-container {
+  width: 100%;
+  height: 3px;
+  background-color: #f0f0f0;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.loading-line {
+  height: 100%;
+  width: 100%;
+  background-color: #4285f4;
+  border-radius: 2px;
+  animation: loadingAnimation 3s infinite linear; 
+  transform-origin: left center;
+}
+
+@keyframes loadingAnimation {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}

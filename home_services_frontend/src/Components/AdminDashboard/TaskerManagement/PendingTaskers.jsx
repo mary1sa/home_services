@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosInstance';
 import { FiEye, FiCheck, FiX, FiSearch, FiCheckSquare } from 'react-icons/fi';
 import './Model.css';
+import Loading from '../../common/Loading';
 
 const PendingTaskers = () => {
   const [pendingTaskers, setPendingTaskers] = useState([]);
@@ -138,7 +139,7 @@ const PendingTaskers = () => {
     tasker.city.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) return <div className="loading">Loading pending taskers...</div>;
+  if (loading) return <Loading/>;
   if (error) return <div className="error">Error: {error}</div>;
 
   return (
