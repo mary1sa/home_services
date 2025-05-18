@@ -115,6 +115,7 @@ const RegisterUser = () => {
             </label>
             {field === 'password' ? (
               <input
+              className='input_register'
                 type="password"
                 name={field}
                 value={formData[field]}
@@ -124,6 +125,8 @@ const RegisterUser = () => {
               />
             ) : (
               <input
+             className='input_register'
+
                 type={field === 'email' ? 'email' : 'text'}
                 name={field}
                 value={formData[field]}

@@ -130,7 +130,7 @@ const currentPath = location.pathname;
         <div className="navbar-center">
           <div className="search-bar">
             <FiSearch className="search-icon" />
-            <input type="text" placeholder="Search..." />
+            <input className='search_dashboard' type="text" placeholder="Search..." />
           </div>
         </div>
 

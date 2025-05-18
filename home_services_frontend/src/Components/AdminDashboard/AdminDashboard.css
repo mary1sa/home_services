@@ -113,7 +113,7 @@
   color: var(--text-light);
 }
 
-.search-bar input {
+.search-bar .search_dashboard {
   width: 100%;
   padding: 0.6rem 1rem 0.6rem 2.5rem;
   border: 1px solid var(--border-color);
@@ -124,7 +124,7 @@
   color: var(--text-color);
 }
 
-.search-bar input:focus {
+.search-bar .search_dashboard:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);

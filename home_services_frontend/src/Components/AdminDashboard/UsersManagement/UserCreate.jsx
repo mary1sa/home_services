@@ -72,7 +72,7 @@ const CreateUser = () => {
       });
 
       if (response.status === 201) {
-        navigate('/users');
+        navigate('/admin/users');
       }
     } catch (error) {
       if (error.response && error.response.status === 422) {

@@ -230,7 +230,24 @@ return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesC
                     <FiCheck className="checkbox-icon" />
                   </label>
                 </td>
-                <td data-label="ID">{tasker.id}</td>
+                <td data-label="ID"><div className="profile-image-container">
+    <img
+      src={
+       tasker.photo
+          ? `http://localhost:8000/storage/${tasker.photo}`
+          : '/anony.jpg'
+      }
+      alt={`${tasker.first_name} ${tasker.last_name}`}
+      className="profile-image"
+    />
+    <div className="user-info">
+      <div className="name-container">
+        <span className="user-name">
+{tasker.user.first_name} {tasker.user.last_name}        </span>
+      </div>
+      <span className="user-id">ID: #{tasker.id}</span>
+    </div>
+  </div></td>
                 <td data-label="Name">{tasker.user.first_name} {tasker.user.last_name}</td>
                 <td data-label="Email">{tasker.user.email}</td>
                 <td data-label="City">{tasker.city}</td>
@@ -244,6 +261,7 @@ return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesC
                     {tasker.user.is_online ? 'online' : 'offline'}
                   </span>
                 </td>
+                
                 <td>
                   <div className="action-buttons">
                     <Link 

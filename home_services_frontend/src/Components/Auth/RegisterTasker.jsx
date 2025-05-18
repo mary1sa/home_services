@@ -156,6 +156,8 @@ const RegisterTasker = () => {
                 <div className="form-group" key={field}>
                   <label>{field.replace('_', ' ')}*</label>
                   <input
+                                className='input_register'
+
                     type={field === 'email' ? 'email' : 'text'}
                     name={field}
                     value={formData[field]}
@@ -169,6 +171,8 @@ const RegisterTasker = () => {
                 <div className="form-group" key={field}>
                   <label>Password* (min 6 characters)</label>
                   <input
+                                className='input_register'
+
                     type="password"
                     name={field}
                     value={formData[field]}
@@ -183,6 +187,8 @@ const RegisterTasker = () => {
                 <div className="form-group" key={field}>
                   <label>Certificate Date*</label>
                   <input
+                                className='input_register'
+
                     type="date"
                     name={field}
                     value={formData[field]}
@@ -196,6 +202,8 @@ const RegisterTasker = () => {
                 <div className="form-group" key={field}>
                   <label>Years of Experience</label>
                   <input
+                                className='input_register'
+
                     type="number"
                     name={field}
                     value={formData[field]}
@@ -226,6 +234,8 @@ const RegisterTasker = () => {
                      field === 'certificate_police' ? 'Police Certificate*' : 'Profile Photo'}
                   </label>
                   <input
+                                className='register_file'
+
                     type="file"
                     name={field}
                     onChange={handleFileChange}

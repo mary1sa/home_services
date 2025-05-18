@@ -48,12 +48,12 @@
 }
 
 .search-input {
-  width: 100%;
-  padding: 10px 15px 10px 38px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.3s;
+  width: 60%;
+  padding: 0.6rem 1rem 0.6rem 2.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 30px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
   background-color: white;
 }
 
@@ -173,6 +173,10 @@
 .selected-row {
   background-color: #e3f2fd !important;
 }
+
+
+
+
 
 /* Table Cell Specific Styles */
 .capitalize {
@@ -355,3 +359,51 @@
 
 
 
+ .profile-image-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .profile-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+  }
+  
+  .user-name {
+    font-weight: 500;
+    color: #2d3748;
+  }
+  
+  .user-id {
+    font-size: 0.8rem;
+    color: #718096;
+    margin-left: 0.5rem;
+  }
+
+
+
+
+  
+  .status-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+  
+  .status-badge.online {
+    background-color: #ebf8f2;
+    color: #2f855a;
+  }
+  
+  .status-badge.offline {
+    background-color: #fff5f5;
+    color: #c53030;
+  }
+  

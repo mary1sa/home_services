@@ -189,7 +189,7 @@ const UserList = () => {
         
         <div className="action-bar">
           
-            <Link to="/users/create" className="create-user-btn">
+            <Link to="/admin/users/create" className="create-user-btn">
               <FiUserPlus className="icon" /> Create New User
             </Link>
          
