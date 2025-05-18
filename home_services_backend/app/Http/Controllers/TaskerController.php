@@ -152,4 +152,25 @@ class TaskerController extends Controller
     }
 
 
+
+    // Get all distinct cities where taskers are available
+public function getCities()
+{
+    try {
+        $cities = Tasker::whereNotNull('city')
+                       ->where('city', '!=', '')
+                       ->where('status', 'approved') // Only approved taskers
+                       ->distinct()
+                       ->pluck('city');
+        
+        return response()->json($cities);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Failed to fetch cities',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+
 }

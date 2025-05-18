@@ -10,7 +10,8 @@ class ContentController extends Controller
     // List all content sections
     public function index()
     {
-        return response()->json(Content::all());
+        $contents = Content::where('status', 'active')->get(); 
+        return response()->json($contents);
     }
 
     // Store a new content section
