@@ -14,7 +14,8 @@ const TaskerList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [onlineStatusFilter, setOnlineStatusFilter] = useState('all');
   const [approvalStatusFilter, setApprovalStatusFilter] = useState('all');
-  
+  const [cityFilter, setCityFilter] = useState('all');
+const [uniqueCities, setUniqueCities] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,6 +23,8 @@ const TaskerList = () => {
       try {
         const response = await axiosInstance.get('/taskers');
         setTaskers(response.data);
+        const cities = [...new Set(response.data.map(tasker => tasker.city))];
+setUniqueCities(cities);
         setFilteredTaskers(response.data);
         setLoading(false);
       } catch (err) {
@@ -56,11 +59,13 @@ const TaskerList = () => {
       const matchesApprovalStatus = approvalStatusFilter === 'all' || 
         tasker.status.toLowerCase() === approvalStatusFilter.toLowerCase();
       
-      return matchesSearch && matchesOnlineStatus && matchesApprovalStatus;
-    });
+const matchesCity = cityFilter === 'all' || 
+  tasker.city.toLowerCase() === cityFilter.toLowerCase();
+
+return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesCity;    });
     
     setFilteredTaskers(results);
-  }, [searchTerm, onlineStatusFilter, approvalStatusFilter, taskers]);
+  }, [searchTerm, onlineStatusFilter, approvalStatusFilter, taskers,cityFilter]);
 
   const toggleSelectAll = () => {
     if (selectAll) {
@@ -149,7 +154,16 @@ const TaskerList = () => {
               <option value="online">Online</option>
               <option value="offline">Offline</option>
             </select>
-            
+            <select
+  value={cityFilter}
+  onChange={(e) => setCityFilter(e.target.value)}
+  className="filter-select"
+>
+  <option value="all">All Cities</option>
+  {uniqueCities.map(city => (
+    <option key={city} value={city}>{city}</option>
+  ))}
+</select>
             <select
               value={approvalStatusFilter}
               onChange={(e) => setApprovalStatusFilter(e.target.value)}
