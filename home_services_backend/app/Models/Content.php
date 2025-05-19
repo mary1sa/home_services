@@ -16,4 +16,5 @@ class Content extends Model
         'image',
         'status'
     ];
+    protected $table = 'content';
 }

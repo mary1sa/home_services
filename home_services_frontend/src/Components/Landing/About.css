@@ -1,0 +1,158 @@
+.about-section {
+  position: relative;
+  overflow: hidden;
+  padding: 5rem 0;
+  background: linear-gradient(135deg, #f9f9ff 0%, #f0f4ff 100%);
+}
+
+.about-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.about-flex {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4rem;
+}
+
+.about-content {
+  flex: 1;
+  min-width: 300px;
+  position: relative;
+  z-index: 2;
+}
+
+.about-content .section-title {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+  position: relative;
+  display: inline-block;
+}
+
+.about-content .title-decoration {
+  position: relative;
+}
+
+
+.about-content .company-name {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.company-description,
+.additional-info {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.learn-more-btn {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(200, 119, 78, 0.4);
+}
+
+.learn-more-btn:hover {
+  background: #fe7856;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(200, 119, 78, 0.4);
+}
+
+.about-image-wrapper {
+  flex: 1;
+  min-width: 300px;
+  position: relative;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  height: 480px;
+}
+
+.about-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(78, 84, 200, 0.2) 0%, rgba(78, 84, 200, 0.1) 100%);
+}
+
+.loading {
+  text-align: center;
+  padding: 5rem;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+  .about-flex {
+    flex-direction: column;
+    gap: 3rem;
+  }
+  
+  .about-image-wrapper {
+    height: 400px;
+    width: 100%;
+    order: -1;
+  }
+  
+  .about-content {
+    text-align: center;
+  }
+  
+  .title-decoration::after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .company-name {
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .about-section {
+    padding: 3rem 0;
+  }
+  
+  .section-title {
+    font-size: 2rem;
+  }
+  
+  .company-name {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .about-container {
+    padding: 0 1.5rem;
+  }
+  
+  .about-image-wrapper {
+    height: 300px;
+  }
+}

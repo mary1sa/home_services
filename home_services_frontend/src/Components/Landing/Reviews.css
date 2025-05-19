@@ -1,0 +1,49 @@
+.reviews-section {
+  background-color: var(--light-color);
+}
+
+.reviews-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.review-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.review-author {
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.review-comment {
+  font-style: italic;
+  color: var(--text-color);
+}
+
+.review-date {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-top: 1rem;
+}
+
+.star {
+  font-size: 1.2rem;
+  color: #ccc; 
+  transition: color 0.3s ease;
+}
+
+.star.filled {
+  color: #fbbf24;
+}
