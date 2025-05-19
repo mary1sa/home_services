@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosInstance';
-import { FiEye, FiEdit2, FiTrash2, FiUserPlus, FiCheck, FiCheckSquare, FiSearch } from 'react-icons/fi';
+import {
+  FiEye, FiEdit2, FiTrash2, FiUserPlus, FiCheck, FiCheckSquare, FiSearch
+} from 'react-icons/fi';
 import './UserList.css';
 import Loading from '../../common/Loading';
+import DeleteConfirmation from '../../common/DeleteConfirmation';
+import SuccessAlert from '../../common/alerts/SuccessAlert';
+import ErrorAlert from '../../common/alerts/ErrorAlert';    
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -16,7 +21,14 @@ const UserList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isBulkDelete, setIsBulkDelete] = useState(false);
+
+  const [successMessage, setSuccessMessage] = useState(null); 
+  const [errorMessage, setErrorMessage] = useState(null);     
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,7 +40,7 @@ const UserList = () => {
 
     const fetchCurrentUser = async () => {
       try {
-        const response = await axiosInstance.get('/user');
+        const response = await axiosInstance.get('/users');
         setCurrentUser(response.data);
       } catch (err) {
         console.error('Failed to fetch current user:', err);
@@ -48,7 +60,6 @@ const UserList = () => {
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch users');
         setLoading(false);
-        
         if (err.response?.status === 401) {
           localStorage.removeItem('token');
           navigate('/login');
@@ -61,23 +72,21 @@ const UserList = () => {
 
   useEffect(() => {
     const results = users.filter(user => {
-      const matchesSearch = searchTerm === '' || 
+      const matchesSearch = searchTerm === '' ||
         user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.role.toLowerCase().includes(searchTerm.toLowerCase());
-      
-    
+
       const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-      
-      
-      const matchesStatus = statusFilter === 'all' || 
-        (statusFilter === 'online' && user.is_online) || 
+
+      const matchesStatus = statusFilter === 'all' ||
+        (statusFilter === 'online' && user.is_online) ||
         (statusFilter === 'offline' && !user.is_online);
-      
+
       return matchesSearch && matchesRole && matchesStatus;
     });
-    
+
     setFilteredUsers(results);
   }, [searchTerm, roleFilter, statusFilter, users]);
 
@@ -98,17 +107,45 @@ const UserList = () => {
     }
   };
 
-  const handleDelete = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
+  const confirmSingleDelete = (userId) => {
+    setDeleteTarget(userId);
+    setIsBulkDelete(false);
+    setShowDeleteModal(true);
+  };
+
+  const confirmBulkDelete = () => {
+    setIsBulkDelete(true);
+    setShowDeleteModal(true);
+  };
+
+  const handleDelete = async () => {
+    setShowDeleteModal(false);
+    if (isBulkDelete) {
       try {
-        await axiosInstance.delete(`/users/${userId}`);
-        const updatedUsers = users.filter(user => user.id !== userId);
-        setUsers(updatedUsers);
-        setFilteredUsers(updatedUsers);
-        setSelectedUsers(selectedUsers.filter(id => id !== userId));
+        await Promise.all(
+          selectedUsers.map(userId => axiosInstance.delete(`users/${userId}`))
+        );
+        const updated = users.filter(user => !selectedUsers.includes(user.id));
+        setUsers(updated);
+        setFilteredUsers(updated);
+        setSelectedUsers([]);
+        setSelectAll(false);
+        setSuccessMessage(`${selectedUsers.length} user(s) deleted successfully.`);
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to delete user');
-        
+        const errMsg = err.response?.data?.message || 'Failed to delete users';
+        setErrorMessage(errMsg);
+      }
+    } else {
+      try {
+        await axiosInstance.delete(`users/${deleteTarget}`);
+        const updated = users.filter(user => user.id !== deleteTarget);
+        setUsers(updated);
+        setFilteredUsers(updated);
+        setSelectedUsers(selectedUsers.filter(id => id !== deleteTarget));
+        setSuccessMessage('User deleted successfully.');
+      } catch (err) {
+        const errMsg = err.response?.data?.message || 'Failed to delete user';
+        setErrorMessage(errMsg);
         if (err.response?.status === 401) {
           localStorage.removeItem('token');
           navigate('/login');
@@ -117,38 +154,32 @@ const UserList = () => {
     }
   };
 
-  const handleBulkDelete = async () => {
-    if (selectedUsers.length === 0) return;
-    
-    if (window.confirm(`Are you sure you want to delete ${selectedUsers.length} selected users?`)) {
-      try {
-        await Promise.all(
-          selectedUsers.map(userId => 
-            axiosInstance.delete(`/users/${userId}`)
-          )
-        );
-        const updatedUsers = users.filter(user => !selectedUsers.includes(user.id));
-        setUsers(updatedUsers);
-        setFilteredUsers(updatedUsers);
-        setSelectedUsers([]);
-        setSelectAll(false);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to delete users');
-      }
-    }
-  };
+  if (loading) return <Loading />;
 
-  if (loading) return <Loading/>;
   if (error) return <div className="error">Error: {error}</div>;
 
-  // const isAdmin = currentUser?.role === 'admin';
   const uniqueRoles = [...new Set(users.map(user => user.role))];
 
   return (
     <div className="user-list-container">
-      <h1>User Management</h1>
-      
-      <div className="search-and-create">
+      {/* Alerts */}
+      <SuccessAlert
+        message={successMessage}
+        onClose={() => setSuccessMessage(null)}
+      />
+      <ErrorAlert
+        message={errorMessage}
+        onClose={() => setErrorMessage(null)}
+      />
+
+      <div className="header-section">
+        <h1>User Management</h1>
+        <Link to="/admin/users/create" className="create-user-btn">
+          <FiUserPlus className="icon" /> Create New User
+        </Link>
+      </div>
+
+      <div className="search-filters-container">
         <div className="search-filters">
           <div className="search-bar">
             <FiSearch className="search-icon" />
@@ -160,7 +191,7 @@ const UserList = () => {
               className="search-input"
             />
           </div>
-          
+
           <div className="filter-group">
             <select
               value={roleFilter}
@@ -174,7 +205,7 @@ const UserList = () => {
                 </option>
               ))}
             </select>
-            
+
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -186,23 +217,12 @@ const UserList = () => {
             </select>
           </div>
         </div>
-        
-        <div className="action-bar">
-          
-            <Link to="/admin/users/create" className="create-user-btn">
-              <FiUserPlus className="icon" /> Create New User
-            </Link>
-         
-          
-          {selectedUsers.length > 0 && (
-            <button 
-              onClick={handleBulkDelete}
-              className="bulk-delete-btn"
-            >
-              <FiTrash2 className="icon" /> Delete Selected ({selectedUsers.length})
-            </button>
-          )}
-        </div>
+
+        {selectedUsers.length > 0 && (
+          <button onClick={confirmBulkDelete} className="bulk-delete-btn">
+            <FiTrash2 className="icon" /> Delete Selected ({selectedUsers.length})
+          </button>
+        )}
       </div>
 
       <div className="table-container">
@@ -240,42 +260,30 @@ const UserList = () => {
                     <FiCheck className="checkbox-icon" />
                   </label>
                 </td>
-                <td data-label="ID">{user.id}</td>
-<td data-label="Name">{user.first_name} {user.last_name}</td>
-<td data-label="Email">{user.email}</td>
-                <td data-label="Role" className="capitalize">{user.role}</td>
-                <td data-label="Status" className="capitalize">
-                  <span  className={`status ${user.is_online ? 'online' : 'offline'}`}>
+                <td>{user.id}</td>
+                <td>{user.first_name} {user.last_name}</td>
+                <td>{user.email}</td>
+                <td className="capitalize">{user.role}</td>
+                <td className="capitalize">
+                  <span className={`status ${user.is_online ? 'online' : 'offline'}`}>
                     {user.is_online ? 'online' : 'offline'}
                   </span>
                 </td>
                 <td>
                   <div className="action-buttons">
-                    <Link 
-                      to={`${user.id}`} 
-                      className="action-btn view-btn"
-                      title="View"
-                    >
+                    <Link to={`${user.id}`} className="action-btn view-btn" title="View">
                       <FiEye className="icon" />
                     </Link>
-                   
-                      <>
-                        <Link 
-                          to={`${user.id}/edit`} 
-                          className="action-btn edit-btn"
-                          title="Edit"
-                        >
-                          <FiEdit2 className="icon" />
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(user.id)}
-                          className="action-btn delete-btn"
-                          title="Delete"
-                        >
-                          <FiTrash2 className="icon" />
-                        </button>
-                      </>
-                  
+                    <Link to={`${user.id}/edit`} className="action-btn edit-btn" title="Edit">
+                      <FiEdit2 className="icon" />
+                    </Link>
+                    <button
+                      onClick={() => confirmSingleDelete(user.id)}
+                      className="action-btn delete-btn"
+                      title="Delete"
+                    >
+                      <FiTrash2 className="icon" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -283,6 +291,13 @@ const UserList = () => {
           </tbody>
         </table>
       </div>
+
+      <DeleteConfirmation
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+        itemName={isBulkDelete ? `${selectedUsers.length} users` : 'this user'}
+      />
     </div>
   );
 };

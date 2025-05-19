@@ -130,11 +130,17 @@ return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesC
 
   return (
     <div className="user-list-container">
-      <h1>Tasker Management</h1>
       
-      <div className="search-and-create">
-        <div className="search-filters">
-          <div className="search-bar">
+        <div className="header-section">
+<h1>Tasker Management</h1>
+          <Link to="/taskers/create" className="create-user-btn">
+            <FiUserPlus className="icon" /> Create New Tasker
+          </Link>
+          
+</div>
+  <div className="search-filters-container">
+    <div className="search-filters">
+      <div className="search-bar">
             <FiSearch className="search-icon" />
             <input
               type="text"
@@ -178,10 +184,6 @@ return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesC
           </div>
         </div>
         
-        <div className="action-bar">
-          <Link to="/taskers/create" className="create-user-btn">
-            <FiUserPlus className="icon" /> Create New Tasker
-          </Link>
           
           {selectedTaskers.length > 0 && (
             <button 
@@ -191,7 +193,7 @@ return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesC
               <FiTrash2 className="icon" /> Delete Selected ({selectedTaskers.length})
             </button>
           )}
-        </div>
+       
       </div>
 
       <div className="table-container">

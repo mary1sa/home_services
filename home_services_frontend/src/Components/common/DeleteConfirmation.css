@@ -1,0 +1,147 @@
+.dc-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeInOverlay 0.3s ease forwards;
+}
+
+.dc-modal {
+  background: rgba(255 255 255 / 0.12);
+  border-radius: 20px;
+  padding: 32px 36px;
+  width: 380px;
+  max-width: 90vw;
+  box-shadow:
+    0 8px 32px 0 rgba(0,0,0,0.37),
+    inset 0 0 50px rgba(255, 255, 255, 0.1);
+  color: #fff;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255 255 255 / 0.25);
+  animation: slideUpFade 0.4s ease forwards;
+  position: relative;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.dc-icon-wrapper {
+  background: #e63946;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow:
+    0 4px 15px rgba(230, 57, 70, 0.7);
+  transform: scale(0.9);
+  animation: pulseIcon 1.5s infinite ease-in-out;
+}
+
+.dc-icon {
+  width: 32px;
+  height: 32px;
+  stroke: #fff;
+}
+
+.dc-title {
+  font-size: 1.7rem;
+  margin-bottom: 14px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  color: #f1f1f1;
+  text-transform: uppercase;
+}
+
+/* Text with subtle glow */
+.dc-text {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 28px;
+  color: #ddd;
+  user-select: none;
+}
+
+.dc-highlight {
+  font-weight: 700;
+  color: #f87171; 
+  text-shadow: 0 0 8px rgba(248, 113, 113, 0.8);
+}
+
+.dc-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.dc-btn {
+  flex: 1;
+  padding: 12px 0;
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  user-select: none;
+}
+
+.dc-cancel {
+  background: rgba(255 255 255 / 0.15);
+  color: #eee;
+  box-shadow:
+    inset 0 0 8px rgba(255 255 255 / 0.25);
+}
+.dc-cancel:hover,
+.dc-cancel:focus {
+  background: rgba(255 255 255 / 0.30);
+  outline: none;
+  color: #fff;
+  box-shadow:
+    0 0 15px rgba(255 255 255 / 0.7);
+}
+
+.dc-delete {
+  background: #e63946;
+  color: white;
+  box-shadow: 0 0 15px #e63946;
+}
+.dc-delete:hover,
+.dc-delete:focus {
+  background: #b3202a;
+  box-shadow: 0 0 25px #b3202a;
+  outline: none;
+}
+
+/* Animations */
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseIcon {
+  0%, 100% {
+    transform: scale(0.9);
+    box-shadow: 0 4px 15px rgba(230, 57, 70, 0.7);
+  }
+  50% {
+    transform: scale(1);
+    box-shadow: 0 6px 25px rgba(230, 57, 70, 1);
+  }
+}

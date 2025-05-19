@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosInstance';
 import { FiEye, FiCheck, FiX, FiSearch, FiCheckSquare } from 'react-icons/fi';
 import './Model.css';
+import './Tasker.css';
+
 import Loading from '../../common/Loading';
 
 const PendingTaskers = () => {
@@ -15,6 +17,7 @@ const PendingTaskers = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [rejectError, setRejectError] = useState('');
+  const [taskerToReject, setTaskerToReject] = useState(null); // New state for single rejection
   
   const navigate = useNavigate();
 
@@ -83,8 +86,8 @@ const PendingTaskers = () => {
     }
   };
 
-  const openRejectModal = () => {
-    if (selectedTaskers.length === 0) return;
+  const openRejectModal = (taskerId = null) => {
+    setTaskerToReject(taskerId);
     setShowRejectModal(true);
     setRejectionReason('');
     setRejectError('');
@@ -92,43 +95,44 @@ const PendingTaskers = () => {
 
   const closeRejectModal = () => {
     setShowRejectModal(false);
+    setTaskerToReject(null);
     setRejectionReason('');
     setRejectError('');
   };
 
-  const handleReject = async (taskerId) => {
-    try {
-      await axiosInstance.post(`taskersreject/${taskerId}`, {
-        rejection_reason: rejectionReason
-      });
-      setPendingTaskers(pendingTaskers.filter(tasker => tasker.id !== taskerId));
-      setSelectedTaskers(selectedTaskers.filter(id => id !== taskerId));
-    } catch (err) {
-      setRejectError(err.response?.data?.message || 'Failed to reject tasker');
-    }
-  };
-
-  const handleBulkReject = async () => {
+  const handleReject = async () => {
     if (!rejectionReason.trim()) {
       setRejectError('Rejection reason is required');
       return;
     }
 
     try {
-      await Promise.all(
-        selectedTaskers.map(taskerId => 
-          axiosInstance.post(`taskersreject/${taskerId}`, {
-            rejection_reason: rejectionReason
-          })
-        )
-      );
-      const updatedTaskers = pendingTaskers.filter(tasker => !selectedTaskers.includes(tasker.id));
-      setPendingTaskers(updatedTaskers);
-      setSelectedTaskers([]);
-      setSelectAll(false);
+      const taskerId = taskerToReject || selectedTaskers[0];
+      
+      if (taskerToReject) {
+        // Single rejection
+        await axiosInstance.post(`taskersreject/${taskerId}`, {
+          rejection_reason: rejectionReason
+        });
+        setPendingTaskers(pendingTaskers.filter(tasker => tasker.id !== taskerId));
+      } else {
+        // Bulk rejection
+        await Promise.all(
+          selectedTaskers.map(id => 
+            axiosInstance.post(`taskersreject/${id}`, {
+              rejection_reason: rejectionReason
+            })
+          )
+        );
+        const updatedTaskers = pendingTaskers.filter(tasker => !selectedTaskers.includes(tasker.id));
+        setPendingTaskers(updatedTaskers);
+        setSelectedTaskers([]);
+        setSelectAll(false);
+      }
+      
       closeRejectModal();
     } catch (err) {
-      setRejectError(err.response?.data?.message || 'Failed to reject taskers');
+      setRejectError(err.response?.data?.message || 'Failed to reject tasker(s)');
     }
   };
 
@@ -144,11 +148,14 @@ const PendingTaskers = () => {
 
   return (
     <div className="user-list-container">
-      <h1>Pending Taskers Approval</h1>
+      <div className="header-section">
+          <h1>User Management</h1>
+          
+        </div>
       
-      <div className="search-and-create">
-        <div className="search-filters">
-          <div className="search-bar">
+      <div className="search-filters-container">
+    <div className="search-filters">
+      <div className="search-bar">
             <FiSearch className="search-icon" />
             <input
               type="text"
@@ -160,7 +167,7 @@ const PendingTaskers = () => {
           </div>
         </div>
         
-        <div className="action-bar">
+        
           {selectedTaskers.length > 0 && (
             <>
               <button 
@@ -170,14 +177,14 @@ const PendingTaskers = () => {
                 <FiCheck className="icon" /> Approve Selected ({selectedTaskers.length})
               </button>
               <button 
-                onClick={openRejectModal}
+                onClick={() => openRejectModal()}
                 className="bulk-action-btn bulk-reject-btn"
               >
                 <FiX className="icon" /> Reject Selected ({selectedTaskers.length})
               </button>
             </>
           )}
-        </div>
+        
       </div>
 
       <div className="table-container">
@@ -241,10 +248,7 @@ const PendingTaskers = () => {
                       <FiCheck className="icon" />
                     </button>
                     <button
-                      onClick={() => {
-                        setSelectedTaskers([tasker.id]);
-                        openRejectModal();
-                      }}
+                      onClick={() => openRejectModal(tasker.id)}
                       className="action-btn reject-btn"
                       title="Reject"
                     >
@@ -262,8 +266,16 @@ const PendingTaskers = () => {
       {showRejectModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>Reject {selectedTaskers.length > 1 ? 'Selected Taskers' : 'Tasker'}</h3>
-            <p>Please provide a reason for rejecting {selectedTaskers.length > 1 ? 'these taskers' : 'this tasker'}:</p>
+            <h3>
+              {taskerToReject 
+                ? 'Reject Tasker' 
+                : `Reject ${selectedTaskers.length} Selected Tasker(s)`}
+            </h3>
+            <p>
+              {taskerToReject
+                ? 'Please provide a reason for rejecting this tasker:'
+                : 'Please provide a reason for rejecting these taskers:'}
+            </p>
             
             <textarea
               value={rejectionReason}
@@ -284,7 +296,7 @@ const PendingTaskers = () => {
                 Cancel
               </button>
               <button 
-                onClick={handleBulkReject}
+                onClick={handleReject}
                 className="confirm-reject-btn"
               >
                 Confirm Rejection

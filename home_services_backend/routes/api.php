@@ -36,6 +36,8 @@ use App\Http\Controllers\PortfolioImageController;
 Route::post('register', [AuthController::class, 'registerUser']);
 Route::post('register-tasker', [AuthController::class, 'registerTasker']);
 Route::post('login', [AuthController::class, 'login']);
+
+
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api');
 Route::get('me', [AuthController::class, 'me'])->middleware('auth:api');
 
@@ -44,11 +46,11 @@ Route::get('me', [AuthController::class, 'me'])->middleware('auth:api');
 //users
 Route::prefix('users')->group(function () {
     Route::get('/', [UserController::class, 'index']);
-    Route::post('/', [UserController::class, 'store']);
+    Route::post('/', [UserController::class, 'store'])->middleware('auth:api');
      Route::get('/{id}', [UserController::class, 'show']);
 
     Route::put('/{id}', [UserController::class, 'update']);
-    Route::delete('/{id}', [UserController::class, 'destroy']);
+Route::delete('/{user}', [UserController::class, 'destroy']);
 });
 
 
@@ -104,8 +106,13 @@ Route::apiResource('review-replies', ReviewReplyController::class);
 Route::apiResource('availabilities', AvailabilityController::class);
 
 // notifications
-Route::apiResource('notifications', NotificationController::class);
 
+Route::middleware('auth:api')->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+});
 // locations
 Route::apiResource('locations', LocationController::class);
 

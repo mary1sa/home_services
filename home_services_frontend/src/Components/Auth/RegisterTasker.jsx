@@ -101,7 +101,7 @@ const RegisterTasker = () => {
         }
       });
 
-      const response = await axiosInstance.post('/register-tasker', formDataToSend, {
+      const response = await axiosInstance.post('register-tasker', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

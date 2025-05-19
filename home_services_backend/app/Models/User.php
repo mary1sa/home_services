@@ -6,15 +6,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
-    use SoftDeletes;
-
+    use HasFactory;
+use SoftDeletes;
+ use Notifiable;
     /**
      * The attributes that are mass assignable.
      *
@@ -47,11 +48,16 @@ class User extends Authenticatable implements JWTSubject
      *
      * @return array<string, string>
      */
+
+
+     protected $dates = ['deleted_at'];
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+                'deleted_at' => 'datetime',
+
         ];
     }
 
@@ -80,11 +86,12 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasMany(Review::class);
     }
 
-    public function notifications()
-    {
-        return $this->hasMany(Notification::class);
-    }
-
+// In User.php
+public function notifications()
+{
+    return $this->morphMany(DatabaseNotification::class, 'notifiable')
+               ->orderBy('created_at', 'desc');
+}
     public function locations()
     {
         return $this->hasMany(Location::class);
@@ -124,4 +131,9 @@ public function getJWTIdentifier()
     {
         return [];
     }
+
+
+
+
+    
 }

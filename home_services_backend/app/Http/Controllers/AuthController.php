@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Tasker;
+use App\Notifications\NewTaskerRegistered;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -48,12 +49,11 @@ class AuthController extends Controller
         'phone'      => 'required|string',
         'city'       => 'required|string',
         'country'    => 'nullable|string',
-        'cin'        => 'required|file|mimes:jpg,jpeg,png',
-        'certificate_police' => 'required|file|mimes:jpg,jpeg,png',
-        'certificate_police_date' => 'required|date',
+'cin' => 'required|file|mimes:jpg,jpeg,png|max:2048',
+'certificate_police' => 'required|file|mimes:jpg,jpeg,png|max:2048',
+'photo' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',        'certificate_police_date' => 'required|date',
         'bio'        => 'nullable|string',
         'experience' => 'nullable|integer',
-        'photo'      => 'nullable|file|mimes:jpg,jpeg,png',
         'role'       => 'tasker'
 
     ]);
@@ -89,7 +89,10 @@ class AuthController extends Controller
             'photo'   => $photoPath,  
             'status'  => 'pending',  
         ]);
-
+   $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new NewTaskerRegistered($tasker));
+        }
         DB::commit(); 
 
         $token = JWTAuth::fromUser($user);

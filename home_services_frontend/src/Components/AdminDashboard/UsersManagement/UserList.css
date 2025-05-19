@@ -13,122 +13,182 @@
 }
 
 /* Search and Action Bar */
-.search-and-create {
+/* Header Section */
+.header-section {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 25px;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.header-section h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* Create User Button */
+.create-user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #4f46e5;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.375rem;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.create-user-btn:hover {
+  background-color: #4338ca;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.create-user-btn .icon {
+  font-size: 1rem;
+}
+
+/* Search and Filters Container */
+.search-filters-container {
+  background-color: white;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
   flex-wrap: wrap;
-  gap: 15px;
-  background: #f8fafc;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
 }
 
 .search-filters {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
   flex-grow: 1;
-  min-width: 250px;
+  min-width: 0; /* Allows proper shrinking */
 }
 
+/* Search Bar - Consistent for both */
 .search-bar {
   position: relative;
-  flex-grow: 1;
+  flex: 1 1 250px; /* Flex-grow, flex-shrink, flex-basis */
+  min-width: 200px; /* Minimum width before wrapping */
 }
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 1rem;
   top: 50%;
   transform: translateY(-50%);
   color: #64748b;
+  font-size: 1rem;
 }
 
 .search-input {
-  width: 60%;
+  width: 80%;
   padding: 0.6rem 1rem 0.6rem 2.5rem;
-  border: 1px solid var(--border-color);
-  border-radius: 30px;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
   font-size: 0.9rem;
-  transition: all 0.3s ease;
-  background-color: white;
+  transition: all 0.2s ease;
+  background-color: #f8fafc;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #a5b4fc;
+  box-shadow: 0 0 0 3px rgba(199, 210, 254, 0.5);
+  background-color: white;
 }
 
+/* Filter Group - Handles 2 or 3 filters */
 .filter-group {
   display: flex;
-  gap: 10px;
+  gap: 0.75rem;
   flex-wrap: wrap;
+  flex: 2 1 auto; /* Allows group to grow/shrink */
+  min-width: 0; /* Fixes flex overflow issues */
 }
 
 .filter-select {
-  padding: 9px 12px;
+  padding: 0.6rem 1rem;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 14px;
-  background-color: white;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  background-color: #f8fafc;
   cursor: pointer;
   min-width: 150px;
-  flex: 1;
+  flex: 1 1 auto; /* Flexible width */
+  transition: all 0.2s ease;
 }
 
 .filter-select:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #a5b4fc;
+  box-shadow: 0 0 0 3px rgba(199, 210, 254, 0.5);
+  background-color: white;
 }
 
-.action-bar {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-/* Buttons */
-.create-user-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #3b82f6;
-  color: white;
-  padding: 9px 16px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: all 0.2s;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.create-user-btn:hover {
-  background-color: #2563eb;
-  transform: translateY(-1px);
-}
-
+/* Bulk Delete Button - Consistent */
 .bulk-delete-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background-color: white;
+  gap: 0.5rem;
+  background-color: #fee2e2;
   color: #dc2626;
-  padding: 9px 16px;
-  border-radius: 6px;
-  border: 1px solid #fecaca;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.375rem;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   font-weight: 500;
+  font-size: 0.9rem;
+  flex-shrink: 0; /* Prevents button from shrinking */
+  margin-left: auto; /* Pushes to far right */
 }
 
 .bulk-delete-btn:hover {
-  background-color: #fee2e2;
+  background-color: #fecaca;
+  transform: translateY(-1px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive Behavior */
+@media (max-width: 768px) {
+  .search-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .search-bar,
+  .filter-select {
+    width: 100%;
+  }
+  
+  .filter-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .bulk-delete-btn {
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
 }
 
 /* Table Styles */
@@ -226,18 +286,39 @@
   transform: scale(1.1);
 }
 
+
 .view-btn {
-  background-color: #2196F3;
+  background-color: #e3f2fd;
+}
+.view-btn .icon {
+  color: #1976d2;
 }
 
 .edit-btn {
-  background-color: #FFC107;
+  background-color: #e8f5e9;
+}
+.edit-btn .icon {
+  color: #388e3c;
 }
 
 .delete-btn {
-  background-color: #F44336;
+  background-color: #ffebee;
+}
+.delete-btn .icon {
+  color: #d32f2f;
 }
 
+.edit-btn:hover {
+  background-color: #c8e6c9;
+}
+
+.delete-btn:hover {
+  background-color: #ffcdd2;
+}
+
+.view-btn:hover {
+  background-color: #bbdefb;
+}
 /* Checkboxes */
 .select-all-checkbox,
 .user-checkbox {
@@ -277,10 +358,7 @@
   color: #dc2626;
 }
 
-/* Tooltips */
-[title] {
-  position: relative;
-}
+
 
 [title]:hover::after {
   content: attr(title);
@@ -296,7 +374,10 @@
   white-space: nowrap;
   z-index: 10;
 }
-
+tr:last-child [title]:hover::after {
+  bottom: auto;
+  top: -30px;
+}
 /* Responsive Styles */
 @media (max-width: 768px) {
   .search-and-create {
@@ -407,3 +488,23 @@
     color: #c53030;
   }
   
+
+
+ 
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .search-filters-container {
+    flex-direction: column;
+  }
+  
+  .search-filters {
+    width: 100%;
+  }
+}

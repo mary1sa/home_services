@@ -2,22 +2,30 @@
 
 namespace App\Models;
 
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
-class Notification extends Model
+class Notification extends DatabaseNotification
 {
-     use HasFactory;
 
-    protected $fillable = [
-        'user_id',
-        'title',
-        'message',
-        'is_read'
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'data' => 'array',
+        'read_at' => 'datetime',
     ];
 
-    public function user()
+    /**
+     * Get the notifiable entity that the notification belongs to.
+     */
+
+
+     
+     public function notifiable()
     {
-        return $this->belongsTo(User::class);
+        return $this->morphTo();
     }
 }

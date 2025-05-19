@@ -66,15 +66,23 @@ const RegisterUser = () => {
     setError('');
 
     try {
-      const response = await axiosInstance.post('/register-user', formData);
+      const response = await axiosInstance.post('users', formData);
       
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.errors || 'Registration failed. Please try again.');
-    } finally {
+  if (err.response?.data?.errors) {
+    // Laravel validation error format
+    const errors = err.response.data.errors;
+    const firstError = Object.values(errors)[0][0]; // First error message
+    setError(firstError);
+  } else {
+    setError('Registration failed. Please try again.');
+  }
+}
+ finally {
       setLoading(false);
     }
   };

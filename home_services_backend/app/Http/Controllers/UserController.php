@@ -26,7 +26,7 @@ public function index()
 }
 
    
-    public function store(Request $request)
+   public function store(Request $request)
 {
     $request->validate([
         'first_name' => 'required|string|max:255',
@@ -36,39 +36,46 @@ public function index()
         'phone' => 'required|string|max:20',
         'address' => 'nullable|string|max:255',
         'role' => 'sometimes|in:user,tasker,admin',
-
-       'city'       => 'required|string',
-        'country'    => 'nullable|string',
-        'cin'        => 'required|file|mimes:jpg,jpeg,png',
-        'certificate_police' => 'required|file|mimes:jpg,jpeg,png',
-        'certificate_police_date' => 'required|date',
-        'bio'        => 'nullable|string',
-        'experience' => 'nullable|integer',
-        'photo'      => 'nullable|file|mimes:jpg,jpeg,png',
     ]);
 
     $user = User::create([
         'first_name' => $request->first_name,
-        'last_name' => $request->last_name,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-        'phone' => $request->phone,
-        'address' => $request->address,
-        'role' => $request->role ?? 'user',
+        'last_name'  => $request->last_name,
+        'email'      => $request->email,
+        'password'   => Hash::make($request->password),
+        'phone'      => $request->phone,
+        'address'    => $request->address,
+        'role'       => $request->role ?? 'user',
     ]);
 
     if ($user->role === 'tasker') {
-        $photoPath = null;
-        if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('taskers/photos', 'public');
-        }
+        $request->validate([
+            'city' => 'required|string',
+            'cin' => 'required|file|mimes:jpg,jpeg,png',
+            'certificate_police' => 'required|file|mimes:jpg,jpeg,png',
+            'certificate_police_date' => 'required|date',
+            'bio' => 'nullable|string',
+            'experience' => 'nullable|integer',
+            'photo' => 'nullable|file|mimes:jpg,jpeg,png',
+            'country' => 'nullable|string',
+        ]);
 
+        // Store uploaded files
+        $photoPath = $request->hasFile('photo') ? 
+                     $request->file('photo')->store('taskers/photos', 'public') : null;
+
+        $cinPath = $request->file('cin')->store('taskers/cin', 'public');
+        $certificatePath = $request->file('certificate_police')->store('taskers/certificates', 'public');
+\Log::info('Authenticated user:', ['user' => auth()->user()]);
+
+        // If the currently authenticated user is admin, approve the tasker
         $status = (auth()->check() && auth()->user()->role === 'admin') ? 'approved' : 'pending';
 
+        // Create tasker profile
         $user->tasker()->create([
             'city' => $request->city,
-            'cin' => $request->cin,
-            'certificate_police' => $request->certificate_police,
+            'cin' => $cinPath,
+            'certificate_police' => $certificatePath,
             'certificate_police_date' => $request->certificate_police_date,
             'bio' => $request->bio,
             'experience' => $request->experience,
@@ -154,11 +161,10 @@ public function index()
     /**
      */
     public function destroy(User $user)
-    {
-        $user->delete();
-        return response()->json(null, 204);
-    }
-
+{
+    $user->delete();
+    return response()->json(null, 204);
+}
    
 
 

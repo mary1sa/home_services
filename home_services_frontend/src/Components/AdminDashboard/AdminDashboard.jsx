@@ -6,9 +6,12 @@ import {
   FiSettings, FiLogOut, FiBell, FiSearch, 
   FiSun, FiMoon, FiChevronDown, FiChevronRight,
   FiUser, FiEdit, FiKey, FiMail, FiCreditCard, FiLock,
-  FiUserPlus,
-  FiList
+  FiUserPlus, FiList, FiCheck
 } from 'react-icons/fi';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import axiosInstance from '../../config/axiosInstance';
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,12 +19,19 @@ const AdminDashboard = () => {
   const [activeMenu, setActiveMenu] = useState('DashboardHome');
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
+  
   const profileDropdownRef = useRef(null);
   const sidebarRef = useRef(null);
   const menuToggleRef = useRef(null);
+  const notificationDropdownRef = useRef(null);
   const navigate = useNavigate();
-const location = useLocation();
-const currentPath = location.pathname;
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
@@ -36,6 +46,7 @@ const currentPath = location.pathname;
     return () => window.removeEventListener('resize', handleResize);
   }, [sidebarOpen]);
 
+  // Handle click outside dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
@@ -46,6 +57,10 @@ const currentPath = location.pathname;
           !event.target.closest('.menu-toggle')) {
         setSidebarOpen(false);
       }
+      
+      if (notificationDropdownRef.current && !notificationDropdownRef.current.contains(event.target)) {
+        setNotificationDropdownOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -53,6 +68,78 @@ const currentPath = location.pathname;
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [sidebarOpen, isMobile]);
+
+  // Fetch notifications and set up polling
+  useEffect(() => {
+   const fetchNotifications = async () => {
+  try {
+    const response = await axiosInstance.get('/notifications');
+    
+    // Ensure we're working with an array
+    const notifications = Array.isArray(response.data.notifications) 
+      ? response.data.notifications 
+      : [];
+    
+    setNotifications(notifications);
+    setUnreadCount(notifications.filter(n => !n.read_at).length);
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    toast.error('Failed to load notifications');
+    setNotifications([]);
+    setUnreadCount(0);
+  }
+};
+
+    // Initial fetch
+    fetchNotifications();
+    
+    // Set up polling every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  const markAsRead = async (id) => {
+    try {
+      await axiosInstance.post(`/notifications/mark-as-read/${id}`);
+      setNotifications(prev => 
+        prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n)
+      );
+      setUnreadCount(prev => prev - 1);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      toast.error('Failed to mark notification as read');
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      await axiosInstance.post('/notifications/mark-all-as-read');
+      setNotifications(prev => 
+        prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() }))
+      );
+      setUnreadCount(0);
+      toast.success('All notifications marked as read');
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      toast.error('Failed to mark all notifications as read');
+    }
+  };
+
+  const handleNotificationClick = (notification) => {
+    // Mark as read if unread
+    if (!notification.read_at) {
+      markAsRead(notification.id);
+    }
+    
+    // Navigate to the link if provided
+    if (notification.data.link) {
+      navigate(notification.data.link);
+    }
+    
+    // Close dropdown
+    setNotificationDropdownOpen(false);
+  };
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -69,7 +156,7 @@ const currentPath = location.pathname;
       icon: <FiUsers />,
       submenus: [
         { 
-          title: " All Users", 
+          title: "All Users", 
           path: "users",
           icon: <FiList className="submenu-icon" />
         },
@@ -80,12 +167,12 @@ const currentPath = location.pathname;
         }
       ]
     },
-     { 
+    { 
       title: "Tasker Management", 
       icon: <FiUsers />,
       submenus: [
         { 
-          title: " All Taskers", 
+          title: "All Taskers", 
           path: "taskers",
           icon: <FiList className="submenu-icon" />
         },
@@ -110,8 +197,6 @@ const currentPath = location.pathname;
     <div className={`admin-container ${darkMode ? 'dark' : ''}`}>
       <nav className="admin-navbar">
         <div className="navbar-left">
-         
-          
           {(!sidebarOpen || isMobile) && (
             <button 
               className="menu-toggle" 
@@ -120,7 +205,8 @@ const currentPath = location.pathname;
             >
               <FiMenu />
             </button>
-          )} {!sidebarOpen && (
+          )}
+          {!sidebarOpen && (
             <div className="app-name">
               <h1>Admin Panel</h1>
             </div>
@@ -139,11 +225,72 @@ const currentPath = location.pathname;
             {darkMode ? <FiSun /> : <FiMoon />}
           </button>
           
-          <div className="notifications-wrapper">
-            <button className="notifications">
+          <div className="notifications-wrapper" ref={notificationDropdownRef}>
+            <button 
+              className="notifications" 
+              onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}
+            >
               <FiBell />
-              <span className="notification-badge">3</span>
+              {unreadCount > 0 && (
+                <span className="notification-badge">{unreadCount}</span>
+              )}
             </button>
+            
+            <div className={`notification-dropdown ${notificationDropdownOpen ? 'open' : ''}`}>
+              <div className="notification-header">
+                <h4>Notifications</h4>
+                <button 
+                  className="mark-all-read"
+                  onClick={markAllAsRead}
+                  disabled={unreadCount === 0}
+                >
+                  Mark all as read
+                </button>
+              </div>
+              
+             <div className="notification-list">
+  {notifications.length > 0 ? (
+    notifications.slice(0, 5).map(notification => (
+      <div 
+        key={notification.id} 
+        className={`notification-item ${!notification.read_at ? 'unread' : ''}`}
+        onClick={() => handleNotificationClick(notification)}
+      >
+        <div className="notification-icon">
+          {notification.data?.icon && (
+            <i className={notification.data.icon}></i>
+          )}
+        </div>
+        <div className="notification-content">
+          <div className="notification-message">
+            {notification.data?.message || 'New notification'}
+          </div>
+          <div className="notification-time">
+            {new Date(notification.created_at).toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit'
+            })}
+          </div>
+        </div>
+      </div>
+    ))
+  ) : (
+    <div className="no-notifications">
+      No new notifications
+    </div>
+  )}
+</div>
+              
+              {notifications.length > 5 && (
+                <Link 
+                  to="/admin/notifications" 
+                  className="view-all"
+                  onClick={() => setNotificationDropdownOpen(false)}
+                >
+                  View all notifications
+                </Link>
+              )}
+            </div>
           </div>
           
           <div className="admin-profile-dropdown" ref={profileDropdownRef}>
@@ -188,7 +335,7 @@ const currentPath = location.pathname;
               <Link to="/admin/notifications" className="dropdown-item" onClick={() => setProfileDropdownOpen(false)}>
                 <FiMail className="dropdown-item-icon" />
                 <span>Notifications</span>
-                <span className="notification-count">5</span>
+                {unreadCount > 0 && <span className="notification-count">{unreadCount}</span>}
               </Link>
               
               <Link to="/admin/billing" className="dropdown-item" onClick={() => setProfileDropdownOpen(false)}>
@@ -235,61 +382,60 @@ const currentPath = location.pathname;
           )}
         </div>
         
-      <div className="sidebar-menu">
-  {menuItems.map((item, index) => (
-    <div key={index} className="menu-group">
-      {item.path ? (
-        <Link
-          to={item.path}
-          className={`menu-item ${
-            currentPath === item.path ? 'active' : ''
-          }`}
-          onClick={() => {
-            setActiveMenu(item.title);
-            if (isMobile) setSidebarOpen(false);
-          }}
-        >
-          <span className="menu-icon">{item.icon}</span>
-          <span className="menu-text">{item.title}</span>
-        </Link>
-      ) : (
-        <>
-          <div
-            className={`menu-item ${
-              item.submenus.some(sub => currentPath.startsWith(sub.path)) ? 'active' : ''
-            }`}
-            onClick={() => toggleMenu(item.title)}
-          >
-            
-            <span className="menu-icon">{item.icon}</span>
-            <span className="menu-text">{item.title}</span>
-            <span className="menu-arrow">
-              {activeMenu === item.title ? <FiChevronDown /> : <FiChevronRight />}
-            </span>
-          </div>
-          
-          {activeMenu === item.title && (
-            <div className="submenu">
-              {item.submenus.map((sub, subIndex) => (
+        <div className="sidebar-menu">
+          {menuItems.map((item, index) => (
+            <div key={index} className="menu-group">
+              {item.path ? (
                 <Link
-                  key={subIndex}
-                  to={sub.path}
-                  className={`submenu-item ${
-                    currentPath.startsWith(sub.path) ? 'active' : ''
+                  to={item.path}
+                  className={`menu-item ${
+                    currentPath === item.path ? 'active' : ''
                   }`}
-                  onClick={() => isMobile && setSidebarOpen(false)}
+                  onClick={() => {
+                    setActiveMenu(item.title);
+                    if (isMobile) setSidebarOpen(false);
+                  }}
                 >
-                  <span className="submenu-icon">{sub.icon}</span>
-                  <span className="submenu-text">{sub.title}</span>
+                  <span className="menu-icon">{item.icon}</span>
+                  <span className="menu-text">{item.title}</span>
                 </Link>
-              ))}
+              ) : (
+                <>
+                  <div
+                    className={`menu-item ${
+                      item.submenus.some(sub => currentPath.startsWith(sub.path)) ? 'active' : ''
+                    }`}
+                    onClick={() => toggleMenu(item.title)}
+                  >
+                    <span className="menu-icon">{item.icon}</span>
+                    <span className="menu-text">{item.title}</span>
+                    <span className="menu-arrow">
+                      {activeMenu === item.title ? <FiChevronDown /> : <FiChevronRight />}
+                    </span>
+                  </div>
+                  
+                  {activeMenu === item.title && (
+                    <div className="submenu">
+                      {item.submenus.map((sub, subIndex) => (
+                        <Link
+                          key={subIndex}
+                          to={sub.path}
+                          className={`submenu-item ${
+                            currentPath.startsWith(sub.path) ? 'active' : ''
+                          }`}
+                          onClick={() => isMobile && setSidebarOpen(false)}
+                        >
+                          <span className="submenu-icon">{sub.icon}</span>
+                          <span className="submenu-text">{sub.title}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-          )}
-        </>
-      )}
-    </div>
-  ))}
-</div>
+          ))}
+        </div>
         <div className="logout-container">
           <button className="logout-button" onClick={handleLogout}>
             <span className="menu-icon"><FiLogOut /></span>
@@ -300,7 +446,7 @@ const currentPath = location.pathname;
 
       <main className="admin-content">
         <div className="content-wrapper">
-    <Outlet />
+          <Outlet />
         </div>
       </main>
     </div>

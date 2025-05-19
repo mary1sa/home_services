@@ -18,6 +18,7 @@ import UserShow from './Components/AdminDashboard/UsersManagement/UserShow';
 import UserEdit from './Components/AdminDashboard/UsersManagement/UserEdit';
 import TaskerList from './Components/AdminDashboard/TaskerManagement/TaskerList';
 import PendingTaskers from './Components/AdminDashboard/TaskerManagement/PendingTaskers';
+import CreateTasker from './Components/AdminDashboard/TaskerManagement/CreateTasker';
 
 
 
@@ -48,6 +49,9 @@ function App() {
   {/*Users management*/}
   <Route path="taskers" element={<TaskerList />} />
         <Route path="taskers/pending" element={<PendingTaskers />} />
+
+      <Route path="taskers/create" element={<CreateTasker/>} />
+
         </Route>
 
 
