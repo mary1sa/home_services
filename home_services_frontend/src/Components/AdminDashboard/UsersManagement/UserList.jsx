@@ -1,9 +1,11 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosInstance';
 import {
-  FiEye, FiEdit2, FiTrash2, FiUserPlus, FiCheck, FiCheckSquare, FiSearch
+  FiEye, FiEdit2, FiTrash2, FiUserPlus, FiCheck, FiCheckSquare, FiSearch,
+  FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight,
+  FiArrowRight,
+  FiArrowLeft
 } from 'react-icons/fi';
 import './UserList.css';
 import Loading from '../../common/Loading';
@@ -22,6 +24,11 @@ const UserList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [usersPerPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -57,6 +64,7 @@ const UserList = () => {
         const response = await axiosInstance.get('/users');
         setUsers(response.data);
         setFilteredUsers(response.data);
+        setTotalPages(Math.ceil(response.data.length / usersPerPage));
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch users');
@@ -69,7 +77,7 @@ const UserList = () => {
     };
 
     fetchUsers();
-  }, [navigate]);
+  }, [navigate, usersPerPage]);
 
   useEffect(() => {
     const results = users.filter(user => {
@@ -89,13 +97,19 @@ const UserList = () => {
     });
 
     setFilteredUsers(results);
-  }, [searchTerm, roleFilter, statusFilter, users]);
+    setTotalPages(Math.ceil(results.length / usersPerPage));
+    setCurrentPage(1); 
+  }, [searchTerm, roleFilter, statusFilter, users, usersPerPage]);
+
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
 
   const toggleSelectAll = () => {
     if (selectAll) {
       setSelectedUsers([]);
     } else {
-      setSelectedUsers(filteredUsers.map(user => user.id));
+      setSelectedUsers(currentUsers.map(user => user.id));
     }
     setSelectAll(!selectAll);
   };
@@ -152,6 +166,20 @@ const UserList = () => {
           navigate('/login');
         }
       }
+    }
+  };
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const goToFirstPage = () => paginate(1);
+  const goToLastPage = () => paginate(totalPages);
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      paginate(currentPage + 1);
+    }
+  };
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      paginate(currentPage - 1);
     }
   };
 
@@ -249,50 +277,155 @@ const UserList = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((user) => (
-              <tr key={user.id} className={selectedUsers.includes(user.id) ? 'selected-row' : ''}>
-                <td>
-                  <label className="user-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.includes(user.id)}
-                      onChange={() => toggleUserSelection(user.id)}
-                    />
-                    <FiCheck className="checkbox-icon" />
-                  </label>
-                </td>
-                <td>{user.id}</td>
-                <td>{user.first_name} {user.last_name}</td>
-                <td>{user.email}</td>
-                <td className="capitalize">{user.role}</td>
-                <td className="capitalize">
-                  <span className={`status ${user.is_online ? 'online' : 'offline'}`}>
-                    {user.is_online ? 'online' : 'offline'}
-                  </span>
-                </td>
-                <td>
-                  <div className="action-buttons">
-                    <Link to={`${user.id}`} className="action-btn view-btn" title="View">
-                      <FiEye className="icon" />
-                    </Link>
-                    <Link to={`${user.id}/edit`} className="action-btn edit-btn" title="Edit">
-                      <FiEdit2 className="icon" />
-                    </Link>
-                    <button
-                      onClick={() => confirmSingleDelete(user.id)}
-                      className="action-btn delete-btn"
-                      title="Delete"
-                    >
-                      <FiTrash2 className="icon" />
-                    </button>
-                  </div>
+            {currentUsers.length > 0 ? (
+              currentUsers.map((user) => (
+                <tr key={user.id} className={selectedUsers.includes(user.id) ? 'selected-row' : ''}>
+                  <td>
+                    <label className="user-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedUsers.includes(user.id)}
+                        onChange={() => toggleUserSelection(user.id)}
+                      />
+                      <FiCheck className="checkbox-icon" />
+                    </label>
+                  </td>
+                  <td>{user.id}</td>
+                  <td>{user.first_name} {user.last_name}</td>
+                  <td>{user.email}</td>
+                  <td className="capitalize">{user.role}</td>
+                  <td className="capitalize">
+                    <span className={`status ${user.is_online ? 'online' : 'offline'}`}>
+                      {user.is_online ? 'online' : 'offline'}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="action-buttons">
+                      <Link to={`${user.id}`} className="action-btn view-btn" title="View">
+                        <FiEye className="icon" />
+                      </Link>
+                      <Link to={`${user.id}/edit`} className="action-btn edit-btn" title="Edit">
+                        <FiEdit2 className="icon" />
+                      </Link>
+                      <button
+                        onClick={() => confirmSingleDelete(user.id)}
+                        className="action-btn delete-btn"
+                        title="Delete"
+                      >
+                        <FiTrash2 className="icon" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="7" className="no-users">
+                  No users found
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
 
+      {/* Pagination */}
+{filteredUsers.length > usersPerPage && (
+  <div className="pagination-container">
+    <nav className="pagination" aria-label="Pagination">
+ 
+      <button
+        onClick={() => paginate(1)}
+        disabled={currentPage === 1}
+        className="pagination-button pagination-edge"
+        aria-label="First page"
+      >
+        &laquo;
+      </button>
+      
+    
+      <button
+        onClick={goToPrevPage}
+        disabled={currentPage === 1}
+        className="pagination-button"
+        aria-label="Previous page"
+      >
+        &lsaquo;
+      </button>
+
+    
+      <div className="pagination-numbers">
+        {currentPage > 2 && (
+          <button 
+            onClick={() => paginate(1)}
+            className={`pagination-number ${currentPage === 1 ? 'active' : ''}`}
+          >
+            1
+          </button>
+        )}
+        
+        {currentPage > 3 && (
+          <span className="pagination-ellipsis">&hellip;</span>
+        )}
+        
+        {currentPage > 1 && (
+          <button 
+            onClick={() => paginate(currentPage - 1)}
+            className="pagination-number"
+          >
+            {currentPage - 1}
+          </button>
+        )}
+        
+        <button className="pagination-number active" aria-current="page">
+          {currentPage}
+        </button>
+        
+        {currentPage < totalPages && (
+          <button 
+            onClick={() => paginate(currentPage + 1)}
+            className="pagination-number"
+          >
+            {currentPage + 1}
+          </button>
+        )}
+        
+        {currentPage < totalPages - 2 && (
+          <span className="pagination-ellipsis">&hellip;</span>
+        )}
+        
+        {currentPage < totalPages - 1 && (
+          <button 
+            onClick={() => paginate(totalPages)}
+            className={`pagination-number ${currentPage === totalPages ? 'active' : ''}`}
+          >
+            {totalPages}
+          </button>
+        )}
+      </div>
+
+  
+      <button
+        onClick={goToNextPage}
+        disabled={currentPage === totalPages}
+        className="pagination-button"
+        aria-label="Next page"
+      >
+        &rsaquo;
+      </button>
+      
+    
+      <button
+        onClick={() => paginate(totalPages)}
+        disabled={currentPage === totalPages}
+        className="pagination-button pagination-edge"
+        aria-label="Last page"
+      >
+        &raquo;
+      </button>
+    </nav>
+  </div>
+)}
       <DeleteConfirmation
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}

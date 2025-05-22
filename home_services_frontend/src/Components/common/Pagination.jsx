@@ -1,8 +1,9 @@
+// components/common/Pagination.js
 import React from 'react';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
-  const maxVisiblePages = 5; 
+  const maxVisiblePages = 5;
 
   const getPageNumbers = () => {
     const pages = [];
@@ -21,58 +22,32 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     return pages;
   };
 
-  const pageNumbers = getPageNumbers();
-
   return (
     <div className="pagination">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="pagination-button"
+        className="pagination-arrow"
       >
-        <FiChevronLeft className="icon" />
+        <FiChevronLeft />
       </button>
 
-      {!pageNumbers.includes(1) && (
-        <>
-          <button
-            onClick={() => onPageChange(1)}
-            className={`pagination-button ${currentPage === 1 ? 'active' : ''}`}
-          >
-            1
-          </button>
-          {startPage > 2 && <span className="pagination-ellipsis">...</span>}
-        </>
-      )}
-
-      {pageNumbers.map((page) => (
+      {getPageNumbers().map((page) => (
         <button
           key={page}
           onClick={() => onPageChange(page)}
-          className={`pagination-button ${currentPage === page ? 'active' : ''}`}
+          className={`pagination-page ${currentPage === page ? 'active' : ''}`}
         >
           {page}
         </button>
       ))}
 
-      {!pageNumbers.includes(totalPages) && (
-        <>
-          {endPage < totalPages - 1 && <span className="pagination-ellipsis">...</span>}
-          <button
-            onClick={() => onPageChange(totalPages)}
-            className={`pagination-button ${currentPage === totalPages ? 'active' : ''}`}
-          >
-            {totalPages}
-          </button>
-        </>
-      )}
-
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="pagination-button"
+        className="pagination-arrow"
       >
-        <FiChevronRight className="icon" />
+        <FiChevronRight />
       </button>
     </div>
   );

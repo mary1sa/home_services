@@ -1,11 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosInstance';
 import { FiEye, FiCheck, FiX, FiSearch, FiCheckSquare } from 'react-icons/fi';
 import './Model.css';
 import './Tasker.css';
-
 import Loading from '../../common/Loading';
 
 const PendingTaskers = () => {
@@ -18,15 +16,16 @@ const PendingTaskers = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [rejectError, setRejectError] = useState('');
-  const [taskerToReject, setTaskerToReject] = useState(null); // New state for single rejection
-  
+  const [taskerToReject, setTaskerToReject] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPendingTaskers = async () => {
       try {
         const response = await axiosInstance.get('taskerspending');
-        setPendingTaskers(response.data);
+        // Filter out taskers with null users
+        const validTaskers = response.data.filter(tasker => tasker.user !== null);
+        setPendingTaskers(validTaskers);
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch pending taskers');
@@ -137,12 +136,14 @@ const PendingTaskers = () => {
     }
   };
 
-  const filteredTaskers = pendingTaskers.filter(tasker => 
-    searchTerm === '' || 
-    tasker.user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tasker.user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tasker.city.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTaskers = pendingTaskers.filter(tasker => {
+    if (!tasker.user) return false;
+    
+    return searchTerm === '' || 
+      (tasker.user.first_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (tasker.user.last_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (tasker.city?.toLowerCase().includes(searchTerm.toLowerCase()));
+  });
 
   if (loading) return <Loading/>;
   if (error) return <div className="error">Error: {error}</div>;
@@ -150,13 +151,12 @@ const PendingTaskers = () => {
   return (
     <div className="user-list-container">
       <div className="header-section">
-          <h1>User Management</h1>
-          
-        </div>
+        <h1>User Management</h1>
+      </div>
       
       <div className="search-filters-container">
-    <div className="search-filters">
-      <div className="search-bar">
+        <div className="search-filters">
+          <div className="search-bar">
             <FiSearch className="search-icon" />
             <input
               type="text"
@@ -168,24 +168,22 @@ const PendingTaskers = () => {
           </div>
         </div>
         
-        
-          {selectedTaskers.length > 0 && (
-            <>
-              <button 
-                onClick={handleBulkApprove}
-                className="bulk-action-btn bulk-approve-btn"
-              >
-                <FiCheck className="icon" /> Approve Selected ({selectedTaskers.length})
-              </button>
-              <button 
-                onClick={() => openRejectModal()}
-                className="bulk-action-btn bulk-reject-btn"
-              >
-                <FiX className="icon" /> Reject Selected ({selectedTaskers.length})
-              </button>
-            </>
-          )}
-        
+        {selectedTaskers.length > 0 && (
+          <>
+            <button 
+              onClick={handleBulkApprove}
+              className="bulk-action-btn bulk-approve-btn"
+            >
+              <FiCheck className="icon" /> Approve Selected ({selectedTaskers.length})
+            </button>
+            <button 
+              onClick={() => openRejectModal()}
+              className="bulk-action-btn bulk-reject-btn"
+            >
+              <FiX className="icon" /> Reject Selected ({selectedTaskers.length})
+            </button>
+          </>
+        )}
       </div>
 
       <div className="table-container">
@@ -206,59 +204,66 @@ const PendingTaskers = () => {
               <th>Name</th>
               <th>Email</th>
               <th>City</th>
-              <th>CIN</th>
+              
               <th>Certificate Date</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredTaskers.map((tasker) => (
-              <tr key={tasker.id} className={selectedTaskers.includes(tasker.id) ? 'selected-row' : ''}>
-                <td>
-                  <label className="user-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={selectedTaskers.includes(tasker.id)}
-                      onChange={() => toggleTaskerSelection(tasker.id)}
-                    />
-                    <FiCheck className="checkbox-icon" />
-                  </label>
-                </td>
-                <td data-label="ID">{tasker.id}</td>
-                <td data-label="Name">{tasker.user.first_name} {tasker.user.last_name}</td>
-                <td data-label="Email">{tasker.user.email}</td>
-                <td data-label="City">{tasker.city}</td>
-                <td data-label="CIN">{tasker.cin}</td>
-                <td data-label="Certificate Date">
-                  {new Date(tasker.certificate_police_date).toLocaleDateString()}
-                </td>
-                <td>
-                  <div className="action-buttons">
-                    <Link 
-                      to={`${tasker.id}`} 
-                      className="action-btn view-btn"
-                      title="View Details"
-                    >
-                      <FiEye className="icon" />
-                    </Link>
-                    <button
-                      onClick={() => handleApprove(tasker.id)}
-                      className="action-btn approve-btn"
-                      title="Approve"
-                    >
-                      <FiCheck className="icon" />
-                    </button>
-                    <button
-                      onClick={() => openRejectModal(tasker.id)}
-                      className="action-btn reject-btn"
-                      title="Reject"
-                    >
-                      <FiX className="icon" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {filteredTaskers.map((tasker) => {
+              if (!tasker.user) return null;
+              
+              return (
+                <tr key={tasker.id} className={selectedTaskers.includes(tasker.id) ? 'selected-row' : ''}>
+                  <td>
+                    <label className="user-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedTaskers.includes(tasker.id)}
+                        onChange={() => toggleTaskerSelection(tasker.id)}
+                      />
+                      <FiCheck className="checkbox-icon" />
+                    </label>
+                  </td>
+                  <td data-label="ID">{tasker.id}</td>
+                  <td data-label="Name">
+                    {tasker.user?.first_name || 'Unknown'} {tasker.user?.last_name || 'User'}
+                  </td>
+                  <td data-label="Email">{tasker.user?.email || 'No email'}</td>
+                  <td data-label="City">{tasker.city || 'Unknown'}</td>
+                  <td data-label="Certificate Date">
+                    {tasker.certificate_police_date 
+                      ? new Date(tasker.certificate_police_date).toLocaleDateString() 
+                      : 'Not provided'}
+                  </td>
+                  <td>
+                    <div className="action-buttons">
+                      <Link 
+                        to={`${tasker.id}`} 
+                        className="action-btn view-btn"
+                        title="View Details"
+                      >
+                        <FiEye className="icon" />
+                      </Link>
+                      <button
+                        onClick={() => handleApprove(tasker.id)}
+                        className="action-btn approve-btn"
+                        title="Approve"
+                      >
+                        <FiCheck className="icon" />
+                      </button>
+                      <button
+                        onClick={() => openRejectModal(tasker.id)}
+                        className="action-btn reject-btn"
+                        title="Reject"
+                      >
+                        <FiX className="icon" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

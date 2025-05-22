@@ -1,6 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import axiosInstance from '../../../config/axiosInstance';
 import { useNavigate } from 'react-router-dom';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+import Select from 'react-select';
+import countryList from 'react-select-country-list';
+import classNames from 'classnames';
+import { FiUpload, FiUser, FiMail, FiPhone, FiMapPin, FiLock, FiCalendar } from 'react-icons/fi';
+
+import "./Form.css"
 
 const CreateUser = () => {
   const navigate = useNavigate();
@@ -12,7 +20,6 @@ const CreateUser = () => {
     phone: '',
     address: '',
     role: 'user',
-    // Tasker specific fields
     city: '',
     country: '',
     bio: '',
@@ -24,8 +31,15 @@ const CreateUser = () => {
     cin: null,
     certificate_police: null
   });
+  const [previews, setPreviews] = useState({
+    photo: null,
+    cin: null,
+    certificate_police: null
+  });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const countries = useMemo(() => countryList().getData(), []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,12 +49,41 @@ const CreateUser = () => {
     }));
   };
 
+  const handleCountryChange = (selectedOption) => {
+    setFormData(prev => ({
+      ...prev,
+      country: selectedOption ? selectedOption.label : ''
+    }));
+  };
+
+  const handlePhoneChange = (value, country) => {
+    setFormData(prev => ({
+      ...prev,
+      phone: value, 
+      countryCode: country?.countryCode 
+    }));
+  };
+
   const handleFileChange = (e) => {
     const { name, files: fileList } = e.target;
+    const file = fileList[0];
+    
     setFiles(prev => ({
       ...prev,
-      [name]: fileList[0]
+      [name]: file
     }));
+
+   
+    if (file && file.type.match('image.*')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviews(prev => ({
+          ...prev,
+          [name]: e.target.result
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -50,14 +93,12 @@ const CreateUser = () => {
 
     const data = new FormData();
     
-    // Append all form fields
     for (const key in formData) {
       if (formData[key] !== '') {
         data.append(key, formData[key]);
       }
     }
     
-    // Append files
     for (const key in files) {
       if (files[key]) {
         data.append(key, files[key]);
@@ -85,212 +126,399 @@ const CreateUser = () => {
     }
   };
 
+  const selectedCountryOption = countries.find(c => c.label === formData.country) || null;
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Create New User</h1>
+    <div className="form-container">
+      <div className="form-header">
+        <h1 className="form-title">Create New User</h1>
+        <p className="form-subtitle">Fill in the details below to create a new user account</p>
+      </div>
       
-      <form onSubmit={handleSubmit} className="max-w-lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">First Name*</label>
+      <form onSubmit={handleSubmit} className="user-form">
+        <div className="form-section">
+          <h2 className="section-title">Basic Information</h2>
+          <div className="input-grid">
+            <div className="input-group">
+              <label className="input-label" htmlFor="first_name">
+                <FiUser className="input-icon" />
+                First Name*
+              </label>
+              <input
+                id="first_name"
+                type="text"
+                name="first_name"
+                value={formData.first_name}
+                onChange={handleChange}
+                className={`input-field ${errors.first_name ? 'input-error' : ''}`}
+                placeholder="Enter first name"
+                required
+              />
+              {errors.first_name && <p className="error-text">{errors.first_name}</p>}
+            </div>
+            
+            <div className="input-group">
+              <label className="input-label" htmlFor="last_name">
+                <FiUser className="input-icon" />
+                Last Name*
+              </label>
+              <input
+                id="last_name"
+                type="text"
+                name="last_name"
+                value={formData.last_name}
+                onChange={handleChange}
+                className={`input-field ${errors.last_name ? 'input-error' : ''}`}
+                placeholder="Enter last name"
+                required
+              />
+              {errors.last_name && <p className="error-text">{errors.last_name}</p>}
+            </div>
+          </div>
+
+          <div className="input-group">
+            <label className="input-label" htmlFor="email">
+              <FiMail className="input-icon" />
+              Email*
+            </label>
             <input
-              type="text"
-              name="first_name"
-              value={formData.first_name}
+              id="email"
+              type="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
-              className="w-full p-2 border rounded"
+              className={`input-field ${errors.email ? 'input-error' : ''}`}
+              placeholder="Enter email address"
               required
             />
-            {errors.first_name && <p className="text-red-500 text-xs">{errors.first_name}</p>}
+            {errors.email && <p className="error-text">{errors.email}</p>}
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-1">Last Name*</label>
+
+          <div className="input-group">
+            <label className="input-label" htmlFor="password">
+              <FiLock className="input-icon" />
+              Password*
+            </label>
             <input
-              type="text"
-              name="last_name"
-              value={formData.last_name}
+              id="password"
+              type="password"
+              name="password"
+              value={formData.password}
               onChange={handleChange}
-              className="w-full p-2 border rounded"
+              className={`input-field ${errors.password ? 'input-error' : ''}`}
+              placeholder="Create a password"
               required
             />
-            {errors.last_name && <p className="text-red-500 text-xs">{errors.last_name}</p>}
+            {errors.password && <p className="error-text">{errors.password}</p>}
           </div>
-        </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Email*</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
-          />
-          {errors.email && <p className="text-red-500 text-xs">{errors.email}</p>}
-        </div>
+          <div className="input-group">
+            <label className="input-label">
+              <FiPhone className="input-icon" />
+              Phone*
+            </label>
+            <PhoneInput
+              country={'us'}
+              value={formData.phone}
+              onChange={handlePhoneChange}
+              inputProps={{
+                name: 'phone',
+                required: true,
+                id: 'phone-input',
+                autoComplete: 'tel'
+              }}
+              containerClass={`phone-input-container ${errors.phone ? 'input-error' : ''}`}
+              inputClass="phone-input-field"
+              dropdownClass="phone-dropdown"
+              enableSearch
+              disableSearchIcon
+              placeholder="Enter phone number"
+            />
+            {errors.phone && <p className="error-text">{errors.phone}</p>}
+          </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Password*</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
-          />
-          {errors.password && <p className="text-red-500 text-xs">{errors.password}</p>}
-        </div>
+          <div className="input-group">
+            <label className="input-label" htmlFor="address">
+              <FiMapPin className="input-icon" />
+              Address
+            </label>
+            <input
+              id="address"
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              className="input-field"
+              placeholder="Enter street address"
+            />
+          </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Phone*</label>
-          <input
-            type="text"
-            name="phone"
-            value={formData.phone}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
-          />
-          {errors.phone && <p className="text-red-500 text-xs">{errors.phone}</p>}
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Address</label>
-          <input
-            type="text"
-            name="address"
-            value={formData.address}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1">Role*</label>
-          <select
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          >
-            <option value="user">User</option>
-            <option value="tasker">Tasker</option>
-            <option value="admin">Admin</option>
-          </select>
+          <div className="input-group">
+            <label className="input-label" htmlFor="role">
+              Role*
+            </label>
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="input-field"
+            >
+              <option value="user">User</option>
+              <option value="tasker">Tasker</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
         </div>
 
         {formData.role === 'tasker' && (
-          <>
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">City*</label>
-              <input
-                type="text"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-                required
-              />
-              {errors.city && <p className="text-red-500 text-xs">{errors.city}</p>}
+          <div className="form-section">
+            <h2 className="section-title">Tasker Details</h2>
+            
+            <div className="input-grid">
+              <div className="input-group">
+                <label className="input-label" htmlFor="city">
+                  City*
+                </label>
+                <input
+                  id="city"
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  className={`input-field ${errors.city ? 'input-error' : ''}`}
+                  placeholder="Enter city"
+                  required
+                />
+                {errors.city && <p className="error-text">{errors.city}</p>}
+              </div>
+
+              <div className="input-group">
+                <label className="input-label" htmlFor="country">
+                  Country
+                </label>
+                <Select
+                  id="country"
+                  name="country"
+                  options={countries}
+                  value={selectedCountryOption}
+                  onChange={handleCountryChange}
+                  classNamePrefix="react-select"
+                  className={`country-select ${errors.country ? 'input-error' : ''}`}
+                  placeholder="Select a country"
+                  isClearable
+                  styles={{
+                    control: (provided) => ({
+                      ...provided,
+                      minHeight: '44px',
+                      borderColor: errors.country ? '#ef4444' : '#d1d5db',
+                      '&:hover': {
+                        borderColor: errors.country ? '#ef4444' : '#9ca3af'
+                      }
+                    }),
+                    option: (provided, state) => ({
+                      ...provided,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#f3f4f6' : 'white',
+                      color: state.isSelected ? 'white' : 'inherit',
+                    }),
+                    singleValue: (provided, state) => ({
+                      ...provided,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                    }),
+                  }}
+                  formatOptionLabel={({ label, value }) => (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <img
+                        loading="lazy"
+                        width="20"
+                        src={`https://flagcdn.com/w20/${value.toLowerCase()}.png`}
+                        alt={label}
+                        style={{ borderRadius: '2px' }}
+                      />
+                      <span>{label}</span>
+                    </div>
+                  )}
+                />
+                {errors.country && <p className="error-text">{errors.country}</p>}
+              </div>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Country</label>
-              <input
-                type="text"
-                name="country"
-                value={formData.country}
-                onChange={handleChange}
-                className="w-full p-2 border rounded"
-              />
+            <div className="input-grid">
+              <div className="input-group">
+                <label className="input-label" htmlFor="cin">
+                  CIN (ID Document)*
+                </label>
+                <div className="file-upload-wrapper">
+                  <label htmlFor="cin" className="file-upload-label">
+                    <div className="file-upload-box">
+                      {previews.cin ? (
+                        <div className="file-preview">
+                          <img src={previews.cin} alt="CIN preview" className="file-preview-image" />
+                          <span className="file-name">{files.cin?.name}</span>
+                        </div>
+                      ) : (
+                        <div className="file-upload-placeholder">
+                          <FiUpload className="upload-icon" />
+                          <span>Upload ID Document</span>
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      id="cin"
+                      type="file"
+                      name="cin"
+                      onChange={handleFileChange}
+                      className="file-input"
+                      accept="image/jpeg,image/png,application/pdf"
+                      required
+                    />
+                  </label>
+                </div>
+                {errors.cin && <p className="error-text">{errors.cin}</p>}
+              </div>
+
+              <div className="input-group">
+                <label className="input-label" htmlFor="certificate_police">
+                  Police Certificate*
+                </label>
+                <div className="file-upload-wrapper">
+                  <label htmlFor="certificate_police" className="file-upload-label">
+                    <div className="file-upload-box">
+                      {previews.certificate_police ? (
+                        <div className="file-preview">
+                          <img src={previews.certificate_police} alt="Certificate preview" className="file-preview-image" />
+                          <span className="file-name">{files.certificate_police?.name}</span>
+                        </div>
+                      ) : (
+                        <div className="file-upload-placeholder">
+                          <FiUpload className="upload-icon" />
+                          <span>Upload Police Certificate</span>
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      id="certificate_police"
+                      type="file"
+                      name="certificate_police"
+                      onChange={handleFileChange}
+                      className="file-input"
+                      accept="image/jpeg,image/png,application/pdf"
+                      required
+                    />
+                  </label>
+                </div>
+                {errors.certificate_police && <p className="error-text">{errors.certificate_police}</p>}
+              </div>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">CIN (ID Document)*</label>
+            <div className="input-group">
+              <label className="input-label" htmlFor="certificate_police_date">
+                <FiCalendar className="input-icon" />
+                Certificate Date*
+              </label>
               <input
-                type="file"
-                name="cin"
-                onChange={handleFileChange}
-                className="w-full p-2 border rounded"
-                accept="image/jpeg,image/png"
-                required
-              />
-              {errors.cin && <p className="text-red-500 text-xs">{errors.cin}</p>}
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Police Certificate*</label>
-              <input
-                type="file"
-                name="certificate_police"
-                onChange={handleFileChange}
-                className="w-full p-2 border rounded"
-                accept="image/jpeg,image/png"
-                required
-              />
-              {errors.certificate_police && <p className="text-red-500 text-xs">{errors.certificate_police}</p>}
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Certificate Date*</label>
-              <input
+                id="certificate_police_date"
                 type="date"
                 name="certificate_police_date"
                 value={formData.certificate_police_date}
                 onChange={handleChange}
-                className="w-full p-2 border rounded"
+                className={`input-field ${errors.certificate_police_date ? 'input-error' : ''}`}
                 required
               />
-              {errors.certificate_police_date && <p className="text-red-500 text-xs">{errors.certificate_police_date}</p>}
+              {errors.certificate_police_date && <p className="error-text">{errors.certificate_police_date}</p>}
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Profile Photo</label>
-              <input
-                type="file"
-                name="photo"
-                onChange={handleFileChange}
-                className="w-full p-2 border rounded"
-                accept="image/jpeg,image/png"
-              />
-              {errors.photo && <p className="text-red-500 text-xs">{errors.photo}</p>}
+            <div className="input-group">
+              <label className="input-label" htmlFor="photo">
+                Profile Photo
+              </label>
+              <div className="file-upload-wrapper">
+                <label htmlFor="photo" className="file-upload-label">
+                  <div className="file-upload-box">
+                    {previews.photo ? (
+                      <div className="file-preview">
+                        <img src={previews.photo} alt="Profile preview" className="file-preview-image" />
+                        <span className="file-name">{files.photo?.name}</span>
+                      </div>
+                    ) : (
+                      <div className="file-upload-placeholder">
+                        <FiUpload className="upload-icon" />
+                        <span>Upload Profile Photo</span>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    id="photo"
+                    type="file"
+                    name="photo"
+                    onChange={handleFileChange}
+                    className="file-input"
+                    accept="image/jpeg,image/png"
+                  />
+                </label>
+              </div>
+              {errors.photo && <p className="error-text">{errors.photo}</p>}
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Bio</label>
+            <div className="input-group">
+              <label className="input-label" htmlFor="bio">
+                Bio
+              </label>
               <textarea
+                id="bio"
                 name="bio"
                 value={formData.bio}
                 onChange={handleChange}
-                className="w-full p-2 border rounded"
-                rows="3"
+                className="input-field"
+                rows="4"
+                placeholder="Tell us about yourself and your skills..."
               />
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Experience (years)</label>
+            <div className="input-group">
+              <label className="input-label" htmlFor="experience">
+                Experience (years)
+              </label>
               <input
+                id="experience"
                 type="number"
                 name="experience"
                 value={formData.experience}
                 onChange={handleChange}
-                className="w-full p-2 border rounded"
+                className="input-field"
                 min="0"
+                placeholder="0"
               />
             </div>
-          </>
+          </div>
         )}
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 disabled:bg-blue-300"
-        >
-          {isSubmitting ? 'Creating...' : 'Create User'}
-        </button>
+        <div className="form-actions">
+          <button
+            type="button"
+            onClick={() => navigate('/admin/users')}
+            className="cancel-button"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={classNames("submit-button", { "disabled-button": isSubmitting })}
+          >
+            {isSubmitting ? (
+              <>
+                <span className="spinner"></span>
+                Creating...
+              </>
+            ) : 'Create User'}
+          </button>
+        </div>
       </form>
     </div>
   );

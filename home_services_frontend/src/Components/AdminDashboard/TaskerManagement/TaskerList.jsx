@@ -1,10 +1,8 @@
-
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosInstance';
 import { FiEye, FiEdit2, FiTrash2, FiUserPlus, FiCheck, FiCheckSquare, FiSearch } from 'react-icons/fi';
 import Loading from '../../common/Loading';
-// import './UserList.css'; 
 
 const TaskerList = () => {
   const [taskers, setTaskers] = useState([]);
@@ -17,17 +15,22 @@ const TaskerList = () => {
   const [onlineStatusFilter, setOnlineStatusFilter] = useState('all');
   const [approvalStatusFilter, setApprovalStatusFilter] = useState('all');
   const [cityFilter, setCityFilter] = useState('all');
-const [uniqueCities, setUniqueCities] = useState([]);
+  const [uniqueCities, setUniqueCities] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTaskers = async () => {
       try {
         const response = await axiosInstance.get('/taskers');
-        setTaskers(response.data);
-        const cities = [...new Set(response.data.map(tasker => tasker.city))];
-setUniqueCities(cities);
-        setFilteredTaskers(response.data);
+        const validTaskers = response.data.filter(tasker => tasker.user !== null);
+        setTaskers(validTaskers);
+        
+        const cities = [...new Set(validTaskers
+          .map(tasker => tasker.city)
+          .filter(city => city !== null)
+        )];
+        setUniqueCities(cities);
+        setFilteredTaskers(validTaskers);
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch taskers');
@@ -45,29 +48,31 @@ setUniqueCities(cities);
 
   useEffect(() => {
     const results = taskers.filter(tasker => {
-      // Search term matching
-      const matchesSearch = searchTerm === '' || 
-        tasker.user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tasker.user.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tasker.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        tasker.city.toLowerCase().includes(searchTerm.toLowerCase());
+      if (!tasker.user) return false;
       
-      // Online status matching
+      const matchesSearch = searchTerm === '' || 
+        (tasker.user.first_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (tasker.user.last_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (tasker.user.email?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (tasker.city?.toLowerCase().includes(searchTerm.toLowerCase()));
+      
       const matchesOnlineStatus = onlineStatusFilter === 'all' || 
         (onlineStatusFilter === 'online' && tasker.user.is_online) || 
         (onlineStatusFilter === 'offline' && !tasker.user.is_online);
       
-      // Approval status matching
+    
       const matchesApprovalStatus = approvalStatusFilter === 'all' || 
-        tasker.status.toLowerCase() === approvalStatusFilter.toLowerCase();
+        (tasker.status?.toLowerCase() === approvalStatusFilter.toLowerCase());
       
-const matchesCity = cityFilter === 'all' || 
-  tasker.city.toLowerCase() === cityFilter.toLowerCase();
+ 
+      const matchesCity = cityFilter === 'all' || 
+        (tasker.city?.toLowerCase() === cityFilter.toLowerCase());
 
-return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesCity;    });
+      return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesCity;
+    });
     
     setFilteredTaskers(results);
-  }, [searchTerm, onlineStatusFilter, approvalStatusFilter, taskers,cityFilter]);
+  }, [searchTerm, onlineStatusFilter, approvalStatusFilter, taskers, cityFilter]);
 
   const toggleSelectAll = () => {
     if (selectAll) {
@@ -131,17 +136,16 @@ return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesC
 
   return (
     <div className="user-list-container">
+      <div className="header-section">
+        <h1>Tasker Management</h1>
+        <Link to="/taskers/create" className="create-user-btn">
+          <FiUserPlus className="icon" /> Create New Tasker
+        </Link>
+      </div>
       
-        <div className="header-section">
-<h1>Tasker Management</h1>
-          <Link to="/taskers/create" className="create-user-btn">
-            <FiUserPlus className="icon" /> Create New Tasker
-          </Link>
-          
-</div>
-  <div className="search-filters-container">
-    <div className="search-filters">
-      <div className="search-bar">
+      <div className="search-filters-container">
+        <div className="search-filters">
+          <div className="search-bar">
             <FiSearch className="search-icon" />
             <input
               type="text"
@@ -163,15 +167,15 @@ return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesC
               <option value="offline">Offline</option>
             </select>
             <select
-  value={cityFilter}
-  onChange={(e) => setCityFilter(e.target.value)}
-  className="filter-select"
->
-  <option value="all">All Cities</option>
-  {uniqueCities.map(city => (
-    <option key={city} value={city}>{city}</option>
-  ))}
-</select>
+              value={cityFilter}
+              onChange={(e) => setCityFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All Cities</option>
+              {uniqueCities.map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
             <select
               value={approvalStatusFilter}
               onChange={(e) => setApprovalStatusFilter(e.target.value)}
@@ -185,16 +189,14 @@ return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesC
           </div>
         </div>
         
-          
-          {selectedTaskers.length > 0 && (
-            <button 
-              onClick={handleBulkDelete}
-              className="bulk-delete-btn"
-            >
-              <FiTrash2 className="icon" /> Delete Selected ({selectedTaskers.length})
-            </button>
-          )}
-       
+        {selectedTaskers.length > 0 && (
+          <button 
+            onClick={handleBulkDelete}
+            className="bulk-delete-btn"
+          >
+            <FiTrash2 className="icon" /> Delete Selected ({selectedTaskers.length})
+          </button>
+        )}
       </div>
 
       <div className="table-container">
@@ -211,8 +213,7 @@ return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesC
                   <FiCheckSquare className="checkbox-icon" />
                 </label>
               </th>
-              <th>ID</th>
-              <th>Name</th>
+              <th>Profile</th>
               <th>Email</th>
               <th>City</th>
               <th>Status</th>
@@ -233,35 +234,38 @@ return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesC
                     <FiCheck className="checkbox-icon" />
                   </label>
                 </td>
-                <td data-label="ID"><div className="profile-image-container">
-    <img
-      src={
-       tasker.photo
-          ? `http://localhost:8000/storage/${tasker.photo}`
-          : '/anony.jpg'
-      }
-      alt={`${tasker.first_name} ${tasker.last_name}`}
-      className="profile-image"
-    />
-    <div className="user-info">
-      <div className="name-container">
-        <span className="user-name">
-{tasker.user.first_name} {tasker.user.last_name}        </span>
-      </div>
-      <span className="user-id">ID: #{tasker.id}</span>
-    </div>
-  </div></td>
-                <td data-label="Name">{tasker.user.first_name} {tasker.user.last_name}</td>
-                <td data-label="Email">{tasker.user.email}</td>
-                <td data-label="City">{tasker.city}</td>
+                <td data-label="ID">
+                  <div className="profile-image-container">
+                    <img
+                      src={
+                        tasker.photo
+                          ? `http://localhost:8000/storage/${tasker.photo}`
+                          : '/anony.jpg'
+                      }
+                      alt={`${tasker.user?.first_name || 'Unknown'} ${tasker.user?.last_name || 'User'}`}
+                      className="profile-image"
+                    />
+                    <div className="user-info">
+                      <div className="name-container">
+                        <span className="user-name">
+                          {tasker.user?.first_name || 'Unknown'} {tasker.user?.last_name || 'User'}
+                        </span>
+                      </div>
+                      <span className="user-id">ID: #{tasker.id}</span>
+                    </div>
+                  </div>
+                </td>
+                
+                <td data-label="Email">{tasker.user?.email || 'No email'}</td>
+                <td data-label="City">{tasker.city || 'Unknown'}</td>
                 <td data-label="Status">
-                  <span className={`status-badge ${tasker.status.toLowerCase()}`}>
-                    {tasker.status}
+                  <span className={`status-badge ${tasker.status?.toLowerCase() || 'unknown'}`}>
+                    {tasker.status || 'Unknown'}
                   </span>
                 </td>
                 <td data-label="Status" className="capitalize">
-                  <span className={`status ${tasker.user.is_online ? 'online' : 'offline'}`}>
-                    {tasker.user.is_online ? 'online' : 'offline'}
+                  <span className={`status ${tasker.user?.is_online ? 'online' : 'offline'}`}>
+                    {tasker.user?.is_online ? 'online' : 'offline'}
                   </span>
                 </td>
                 
@@ -299,4 +303,4 @@ return matchesSearch && matchesOnlineStatus && matchesApprovalStatus && matchesC
   );
 };
 
-export default TaskerList
+export default TaskerList;
