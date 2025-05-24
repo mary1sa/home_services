@@ -67,7 +67,7 @@ const RegisterUser = () => {
     setError('');
 
     try {
-      const response = await axiosInstance.post('users', formData);
+      const response = await axiosInstance.post('register-user', formData);
       
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -115,7 +115,7 @@ const RegisterUser = () => {
     return (
       <div className="step-container">
         {currentFields.map(field => (
-          <div className="form-group" key={field}>
+          <div className="group-register" key={field}>
             <label>
               {field === 'first_name' ? 'First Name' :
                field === 'last_name' ? 'Last Name' :

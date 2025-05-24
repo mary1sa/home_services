@@ -7,17 +7,14 @@ use Illuminate\Notifications\DatabaseNotification;
 
 class NotificationController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('auth:api'); // Ensure all methods are protected
-    // }
+    
 
     public function index(Request $request)
     {
         $user = $request->user();
         
         return response()->json([
-            'notifications' => $user->notifications()->paginate(10), 
+            'notifications' => $user->notifications()->get(), 
             'unread_count' => $user->unreadNotifications()->count()
         ]);
     }

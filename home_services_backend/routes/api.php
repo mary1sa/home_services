@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+use App\Notifications\TestNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FaqController;
@@ -46,7 +48,6 @@ Route::get('me', [AuthController::class, 'me'])->middleware('auth:api');
 //users
 Route::prefix('users')->group(function () {
     Route::get('/', [UserController::class, 'index']);
-
     Route::post('/', [UserController::class, 'store'])->middleware('auth:api');
      Route::get('/{id}', [UserController::class, 'show']);
 
@@ -110,12 +111,13 @@ Route::apiResource('review-replies', ReviewReplyController::class);
 Route::apiResource('availabilities', AvailabilityController::class);
 
 // notifications
-
-Route::middleware('auth:api')->group(function () {
-    Route::get('/notifications', [NotificationController::class, 'index']);
-    Route::post('/notifications/read', [NotificationController::class, 'markAsRead']);
-    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
-    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
+Route::middleware('auth:api')->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::get('/unread', [NotificationController::class, 'unread']);
+    Route::post('/mark-as-read/{id}', [NotificationController::class, 'markAsRead']);
+    Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('/{id}', [NotificationController::class, 'destroy']);
+    Route::delete('/', [NotificationController::class, 'clearAll']);
 });
 // locations
 Route::apiResource('locations', LocationController::class);
@@ -140,3 +142,5 @@ Route::apiResource('paniers', PanierController::class);
 
 // admin logs
 Route::apiResource('admin-logs', AdminLogController::class);
+
+

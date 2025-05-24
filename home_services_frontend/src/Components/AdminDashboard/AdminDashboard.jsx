@@ -73,23 +73,35 @@ const AdminDashboard = () => {
   useEffect(() => {
    const fetchNotifications = async () => {
   try {
+    console.log('Fetching notifications...');
     const response = await axiosInstance.get('/notifications');
+    console.log('Notifications response:', response);
     
-    // Ensure we're working with an array
-    const notifications = Array.isArray(response.data.notifications) 
-      ? response.data.notifications 
-      : [];
-    
-    setNotifications(notifications);
-    setUnreadCount(notifications.filter(n => !n.read_at).length);
+    if (response.data && response.data.notifications) {
+      const notifications = Array.isArray(response.data.notifications) 
+        ? response.data.notifications 
+        : [];
+      
+      console.log('Processed notifications:', notifications);
+      setNotifications(notifications);
+      setUnreadCount(notifications.filter(n => !n.read_at).length);
+    } else {
+      console.warn('Unexpected response format:', response.data);
+      setNotifications([]);
+      setUnreadCount(0);
+    }
   } catch (error) {
     console.error('Error fetching notifications:', error);
+    if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+    }
     toast.error('Failed to load notifications');
     setNotifications([]);
     setUnreadCount(0);
   }
 };
-
     // Initial fetch
     fetchNotifications();
     
@@ -224,74 +236,86 @@ const AdminDashboard = () => {
           <button className="theme-toggle" onClick={toggleDarkMode}>
             {darkMode ? <FiSun /> : <FiMoon />}
           </button>
-          
-          <div className="notifications-wrapper" ref={notificationDropdownRef}>
-            <button 
-              className="notifications" 
-              onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}
-            >
-              <FiBell />
-              {unreadCount > 0 && (
-                <span className="notification-badge">{unreadCount}</span>
-              )}
-            </button>
-            
-            <div className={`notification-dropdown ${notificationDropdownOpen ? 'open' : ''}`}>
-              <div className="notification-header">
-                <h4>Notifications</h4>
-                <button 
-                  className="mark-all-read"
-                  onClick={markAllAsRead}
-                  disabled={unreadCount === 0}
-                >
-                  Mark all as read
-                </button>
-              </div>
-              
-             <div className="notification-list">
-  {notifications.length > 0 ? (
-    notifications.slice(0, 5).map(notification => (
-      <div 
-        key={notification.id} 
-        className={`notification-item ${!notification.read_at ? 'unread' : ''}`}
-        onClick={() => handleNotificationClick(notification)}
+         <div className="notifications-wrapper" ref={notificationDropdownRef}>
+  <button 
+    className="notifications" 
+    onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}
+  >
+    <FiBell />
+    {unreadCount > 0 && (
+      <span className="notification-badge">{unreadCount}</span>
+    )}
+  </button>
+  
+  <div className={`notification-dropdown ${notificationDropdownOpen ? 'open' : ''}`}>
+    <div className="notification-header">
+      <h4>Notifications</h4>
+      <button 
+        className="mark-all-read"
+        onClick={markAllAsRead}
+        disabled={unreadCount === 0}
       >
-        <div className="notification-icon">
-          {notification.data?.icon && (
-            <i className={notification.data.icon}></i>
-          )}
-        </div>
-        <div className="notification-content">
-          <div className="notification-message">
-            {notification.data?.message || 'New notification'}
-          </div>
-          <div className="notification-time">
-            {new Date(notification.created_at).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-          </div>
-        </div>
-      </div>
-    ))
-  ) : (
-    <div className="no-notifications">
-      No new notifications
+        Mark all as read
+      </button>
     </div>
-  )}
-</div>
-              
-              {notifications.length > 5 && (
-                <Link 
-                  to="/admin/notifications" 
-                  className="view-all"
-                  onClick={() => setNotificationDropdownOpen(false)}
-                >
-                  View all notifications
-                </Link>
-              )}
+    
+    <div className="notification-list">
+      {notifications.length > 0 ? (
+        notifications.slice(0, 5).map(notification => (
+          <div 
+            key={notification.id} 
+            className={`notification-item ${!notification.read_at ? 'unread' : ''}`}
+            onClick={() => handleNotificationClick(notification)}
+          >
+            <div className="notification-icon">
+              {/* You can customize icons based on notification type */}
+              {notification.type === 'new_tasker' && <FiUserPlus />}
+              {notification.type === 'payment' && <FiDollarSign />}
+              {!notification.type && <FiBell />}
             </div>
+            <div className="notification-content">
+              <div className="notification-message">
+                {notification.data?.message || 'New notification'}
+              </div>
+              <div className="notification-time">
+                {new Date(notification.created_at).toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </div>
+            </div>
+            {!notification.read_at && (
+              <button 
+                className="mark-as-read-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  markAsRead(notification.id);
+                }}
+                title="Mark as read"
+              >
+                <FiCheck size={14} />
+              </button>
+            )}
           </div>
+        ))
+      ) : (
+        <div className="no-notifications">
+          No new notifications
+        </div>
+      )}
+    </div>
+    
+    {notifications.length > 5 && (
+      <Link 
+        to="/admin/notifications" 
+        className="view-all"
+        onClick={() => setNotificationDropdownOpen(false)}
+      >
+        View all notifications
+      </Link>
+    )}
+  </div>
+</div>
           
           <div className="admin-profile-dropdown" ref={profileDropdownRef}>
             <div className="admin-profile">

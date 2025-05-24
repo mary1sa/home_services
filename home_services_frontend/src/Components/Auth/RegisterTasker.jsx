@@ -154,7 +154,7 @@ const RegisterTasker = () => {
             case 'city':
             case 'country':
               return (
-                <div className="form-group" key={field}>
+                <div className="group-register" key={field}>
                   <label>{field.replace('_', ' ')}*</label>
                   <input
                                 className='input_register'
@@ -169,7 +169,7 @@ const RegisterTasker = () => {
               );
             case 'password':
               return (
-                <div className="form-group" key={field}>
+                <div className="group-register" key={field}>
                   <label>Password* (min 6 characters)</label>
                   <input
                                 className='input_register'
@@ -185,7 +185,7 @@ const RegisterTasker = () => {
               );
             case 'certificate_police_date':
               return (
-                <div className="form-group" key={field}>
+                <div className="group-register" key={field}>
                   <label>Certificate Date*</label>
                   <input
                                 className='input_register'
@@ -200,7 +200,7 @@ const RegisterTasker = () => {
               );
             case 'experience':
               return (
-                <div className="form-group" key={field}>
+                <div className="group-register" key={field}>
                   <label>Years of Experience</label>
                   <input
                                 className='input_register'
@@ -215,7 +215,7 @@ const RegisterTasker = () => {
               );
             case 'bio':
               return (
-                <div className="form-group" key={field}>
+                <div className="group-register" key={field}>
                   <label>Bio (Tell us about yourself)</label>
                   <textarea
                     name={field}
@@ -229,7 +229,7 @@ const RegisterTasker = () => {
             case 'certificate_police':
             case 'photo':
               return (
-                <div className="form-group" key={field}>
+                <div className="group-register" key={field}>
                   <label>
                     {field === 'cin' ? 'ID Document (CIN)*' : 
                      field === 'certificate_police' ? 'Police Certificate*' : 'Profile Photo'}

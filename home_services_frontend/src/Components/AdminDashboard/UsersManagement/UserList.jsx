@@ -26,7 +26,7 @@ const UserList = () => {
   const [statusFilter, setStatusFilter] = useState('all');
 
   
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(4);
   const [usersPerPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 

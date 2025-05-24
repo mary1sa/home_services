@@ -49,7 +49,7 @@ const Login = () => {
         {error && <div className="login-error">{error}</div>}
 
         <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
+          <div className="group-login">
             <label htmlFor="email">Email</label>
             <input
                         className="input-login"
@@ -63,7 +63,7 @@ const Login = () => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="group-login">
             <label htmlFor="password">Password</label>
             <input
             className="input-login"

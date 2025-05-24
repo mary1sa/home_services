@@ -21,7 +21,7 @@ const PendingTaskers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const [currentPage, setCurrentPage] = useState(1);
-  const [taskersPerPage] = useState(1);
+  const [taskersPerPage] = useState(3);
   const [totalPages, setTotalPages] = useState(1);
 
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -330,8 +330,7 @@ const PendingTaskers = () => {
         </table>
       </div>
 
-      {/* Pagination */}
-      {filteredTaskers.length > taskersPerPage && (
+        {filteredTaskers.length > taskersPerPage && (
         <div className="pagination-container">
           <nav className="pagination" aria-label="Pagination">
             <button

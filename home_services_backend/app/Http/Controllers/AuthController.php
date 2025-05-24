@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Tasker;
 use App\Notifications\NewTaskerRegistered;
+use App\Notifications\NewUserRegistered;
 use DB;
 
 use Illuminate\Http\Request;
@@ -36,6 +37,13 @@ class AuthController extends Controller
             'phone'      => $request->phone,
             'role'       => 'user'
         ]);
+
+
+         $admins = User::where('role', 'admin')->get();
+    foreach ($admins as $admin) {
+        $admin->notify(new NewUserRegistered($user));
+    }
+
 
         $token = JWTAuth::fromUser($user);
         return response()->json(compact('user', 'token'), 201);
@@ -91,10 +99,7 @@ class AuthController extends Controller
             'photo'   => $photoPath,  
             'status'  => 'pending',  
         ]);
-   $admins = User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
-            $admin->notify(new NewTaskerRegistered($tasker));
-        }
+  
         DB::commit(); 
 
         $token = JWTAuth::fromUser($user);

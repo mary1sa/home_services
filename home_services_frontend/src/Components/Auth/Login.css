@@ -39,19 +39,19 @@
   gap: 5px;
 }
 
-.form-group {
+.group-login {
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
-.form-group label {
+.group-login label {
   font-size: 14px;
   color: #4a5568;
   font-weight: 500;
 }
 
-.form-group .input-login {
+.group-login .input-login {
   padding: 10px !important;
   border: 1px solid #e2e8f0 !important;
   border-radius: 8px !important;
@@ -60,7 +60,7 @@
   width: inherit !important;
 }
 
-.form-group input:focus {
+.group-login input:focus {
   outline: none;
   border-color: #3182ce;
   box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
