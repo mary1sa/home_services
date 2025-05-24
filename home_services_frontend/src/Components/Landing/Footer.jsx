@@ -1,7 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import axiosInstance from '../../config/axiosInstance';
-import Loading from '../common/Loading';
-import "./Footer.css";
+import React from 'react';
 import { 
   FaMapMarkerAlt, 
   FaPhone, 
@@ -12,40 +9,9 @@ import {
   FaInstagram,
   FaLinkedin,
 } from 'react-icons/fa';
+import "./Footer.css";
 
-const Footer = () => {
-  const [content, setContent] = useState(null);
-  const [company, setCompany] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [contentRes, companyRes] = await Promise.all([
-          axiosInstance.get('/contents'),
-          axiosInstance.get('/companies/1')
-        ]);
-
-        const section = contentRes.data.find(
-          item => item.section_name === 'footer' && item.status === 'active'
-        );
-        
-        setContent(section || { content: "Default footer content" });
-        setCompany(companyRes.data);
-      } catch (error) {
-        console.error('Error fetching footer data:', error);
-        setError('Failed to load footer content');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) return <Loading />;
-
+const Footer = ({ company, footerContent }) => {
   return (
     <footer id="footer" className="footer">
       <div className="footer-content">
@@ -62,7 +28,7 @@ const Footer = () => {
             )}
           </div>
           <p className="footer-description">
-            {content?.content || "Quality services for all your needs"}
+            {footerContent?.content || "Quality services for all your needs"}
           </p>
         </div>
 

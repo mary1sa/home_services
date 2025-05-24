@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from "react";
-import axiosInstance from "../../config/axiosInstance";
-import Loading from "../common/Loading";
+import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Grid, Keyboard } from "swiper/modules";
 import "swiper/css";
@@ -9,29 +7,7 @@ import "swiper/css/pagination";
 import "swiper/css/grid";
 import "./Reviews.css";
 
-const Reviews = () => {
-  const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchReviews = async () => {
-      try {
-        const res = await axiosInstance.get("/company-reviews");
-        setReviews(res.data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setError("Failed to load reviews. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchReviews();
-  }, []);
-
-  if (loading) return <Loading />;
-  if (error) return <div className="error-message">{error}</div>;
-
+const Reviews = ({ reviews }) => {
   return (
     <section id="reviews" className="reviews-section">
       <h2 className="section-title">Customer Reviews</h2>
