@@ -11,8 +11,6 @@ import {
   FaTwitter,
   FaInstagram,
   FaLinkedin,
-  FaYoutube,
-  FaTiktok
 } from 'react-icons/fa';
 
 const Footer = () => {
@@ -96,16 +94,6 @@ const Footer = () => {
               </p>
             )}
           </div>
-        </div>
-
-        <div className="quick-links">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/about">About Us</a></li>
-            <li><a href="/services">Services</a></li>
-            <li><a href="/contact">Contact</a></li>
-          </ul>
         </div>
 
         <div className="social-links-container">

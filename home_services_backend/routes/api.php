@@ -28,7 +28,6 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\CompanyReviewController;
 use App\Http\Controllers\PromotionCodeController;
 use App\Http\Controllers\ServiceReviewController;
-use App\Http\Controllers\ServiceTaskerController;
 use App\Http\Controllers\PortfolioImageController;
 
 // Route::get('/user', function (Request $request) {
@@ -82,12 +81,6 @@ Route::apiResource('services', ServiceController::class);
 
 // bookings
 Route::apiResource('bookings', BookingController::class);
-
-// service-tasker relationship
-Route::get('taskers/{id}/services', [ServiceTaskerController::class, 'index']);
-Route::post('taskers/{id}/services/attach', [ServiceTaskerController::class, 'attachServices']);
-Route::post('taskers/{id}/services/detach', [ServiceTaskerController::class, 'detachServices']);
-Route::post('taskers/{id}/services/sync', [ServiceTaskerController::class, 'syncServices']);
 
 // invoices
 Route::apiResource('invoices', InvoiceController::class);

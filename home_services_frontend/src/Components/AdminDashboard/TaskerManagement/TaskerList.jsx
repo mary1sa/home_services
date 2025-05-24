@@ -198,7 +198,7 @@ const TaskerList = () => {
 
       <div className="header-section">
         <h1>Tasker Management</h1>
-        <Link to="/taskers/create" className="create-user-btn">
+        <Link to="create" className="create-user-btn">
           <FiUserPlus className="icon" /> Create New Tasker
         </Link>
       </div>

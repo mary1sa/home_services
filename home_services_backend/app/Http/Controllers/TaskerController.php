@@ -11,7 +11,7 @@ class TaskerController extends Controller
     // Get all taskers
     public function index()
     {
-        return response()->json(Tasker::with('user')->get());
+        return response()->json(Tasker::with('user','portfolioImages','services')->get());
     }
 
     // Store a new tasker
