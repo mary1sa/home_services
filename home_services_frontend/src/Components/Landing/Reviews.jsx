@@ -53,7 +53,9 @@ const Reviews = ({ reviews }) => {
                 <div className="review-header">
                   <div>
                     <h4 className="review-author">
-                      {review.user ? review.user.first_name : "Anonymous"}
+                      {review.user
+                        ? `${review.user.first_name} ${review.user.last_name}`
+                        : "Anonymous"}
                     </h4>
                     <small className="review-date">
                       {new Date(review.created_at).toLocaleDateString()}
