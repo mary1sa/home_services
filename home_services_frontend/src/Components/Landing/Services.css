@@ -1,33 +1,192 @@
 .services-section {
-  background-color: white;
-  padding: 4rem 2rem;
+  background: linear-gradient(145deg, #f8faff 0%, #f0f5ff 100%);
+  padding:0 2rem;
+  position: relative;
+  overflow: hidden;
 }
 
+.services-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path fill="%232c3e50" opacity="0.03" d="M100 0c55.2 0 100 44.8 100 100s-44.8 100-100 100S0 155.2 0 100 44.8 0 100 0z"/></svg>') repeat;
+  z-index: 0;
+}
+
+.services-section .section-title {
+  text-align: center;
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--primary-dark);
+  position: relative;
+  display: inline-block;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 700;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: var(--accent-color);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.section-title:hover::after {
+  width: 100%;
+}
+
+.services-swiper {
+  padding: 2rem 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.services-swiper .swiper-pagination {
+  position: relative;
+}
+
+.services-swiper .swiper-pagination-bullet {
+  width: 12px;
+  height: 12px;
+  background: var(--primary-light);
+  opacity: 0.5;
+  transition: all 0.3s ease;
+}
+
+.services-swiper .swiper-pagination-bullet-active {
+  background: var(--accent-color);
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+.services-swiper .swiper-button-next,
+.services-swiper .swiper-button-prev {
+  color: var(--accent-color);
+  background: rgba(255, 255, 255, 0.8);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.services-swiper .swiper-button-next::after,
+.services-swiper .swiper-button-prev::after {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.services-swiper .swiper-button-next:hover,
+.services-swiper .swiper-button-prev:hover {
+  background: var(--accent-color);
+  color: white;
+  transform: scale(1.1);
+}
 
 .service-card {
   background: white;
-  border-radius: 8px;
-  padding: 2rem;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  max-width: 400px;
+  border-radius: 16px;
+  padding:20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.3, 0, 0.3, 1);
   height: 100%;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  margin-bottom:1.5rem ;
 }
 
 .service-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+
+.service-card:hover::before {
+  transform: scaleX(1);
 }
 
 .service-title {
-  color: var(--primary-color);
-  margin-bottom: 1rem;
+  color: var(--primary-dark);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.service-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: var(--accent-light);
+  transition: width 0.3s ease;
+}
+
+.service-card:hover .service-title::after {
+  width: 80px;
+}
+
+.service-description {
+  color: var(--primary-light);
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
 }
 
 .service-image {
   width: 100%;
   height: 200px;
   object-fit: cover;
-  border-radius: 4px;
-  margin-top: 1rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+  transition: transform 0.5s ease, filter 0.5s ease;
+  filter: brightness(0.95);
+}
+
+.service-card:hover .service-image {
+  transform: scale(1.05);
+  filter: brightness(1);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .services-swiper {
+    padding: 2rem 3rem;
+  }
+}
+
+@media (max-width: 992px) {
+  .services-swiper {
+    padding: 2rem 2rem;
+  }
+  .services-swiper .swiper-slide {
+    width: 50% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .services-section {
+    padding: 3rem 1rem;
+  }
+  
+  .services-swiper {
+    padding: 2rem 1rem;
+  }
+    .services-swiper .swiper-slide {
+    width: 100% !important;
+    padding: 0 10px; 
+  }
 }

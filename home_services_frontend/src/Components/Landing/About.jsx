@@ -7,9 +7,7 @@ const About = ({ company }) => {
       <div className="about-container">
         <div className="about-flex">
           <div className="about-content">
-            <h2 className="section-title">
-              <span className="title-decoration">About Us</span>
-            </h2>
+            <h2 className="section-title">About Us</h2>
             <p className="company-name">{company?.name || "Our Company"}</p>
             <p className="company-description">
               {company?.description || "Company description not available"}
@@ -24,7 +22,6 @@ const About = ({ company }) => {
               className="about-img"
               loading="lazy"
             />
-            <div className="image-overlay"></div>
           </div>
         </div>
       </div>

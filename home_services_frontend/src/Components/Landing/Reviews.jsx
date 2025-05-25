@@ -8,25 +8,45 @@ import "swiper/css/grid";
 import "./Reviews.css";
 
 const Reviews = ({ reviews }) => {
+  const swiperParams = {
+    modules: [Navigation, Pagination, Keyboard, Grid],
+    grid: { rows: 2, fill: "row" },
+    slidesPerView: 1,
+    spaceBetween: 15,
+    navigation: true,
+    pagination: { clickable: true },
+    keyboard: { enabled: true },
+    allowTouchMove: true,
+    simulateTouch: true,
+    slideToClickedSlide: true,
+    tabIndex: 0,
+    className: "reviews-swiper",
+    breakpoints: {
+      576: {
+        slidesPerView: 2,
+        spaceBetween: 20,
+        grid: {
+          rows: 2,
+          fill: "row"
+        }
+      },
+      992: {
+        slidesPerView: 3,
+        spaceBetween: 25,
+        grid: {
+          rows: 2,
+          fill: "row"
+        }
+      }
+    }
+  };
+
   return (
     <section id="reviews" className="reviews-section">
       <h2 className="section-title">Customer Reviews</h2>
 
       {reviews.length > 0 ? (
-        <Swiper
-          modules={[Navigation, Pagination, Keyboard, Grid]}
-          grid={{ rows: 2, fill: "row" }}
-          slidesPerView={3}
-          spaceBetween={20}
-          navigation
-          pagination={{ clickable: true }}
-          keyboard={{ enabled: true }}
-          allowTouchMove={true}
-          simulateTouch={true}
-          slideToClickedSlide={true}
-          tabIndex={0}
-          className="reviews-swiper"
-        >
+        <Swiper {...swiperParams}>
           {reviews.map((review) => (
             <SwiperSlide key={review.id}>
               <div className="review-card">

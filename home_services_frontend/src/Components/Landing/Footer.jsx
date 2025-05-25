@@ -1,14 +1,14 @@
-import React from 'react';
-import { 
-  FaMapMarkerAlt, 
-  FaPhone, 
+import React from "react";
+import {
+  FaMapMarkerAlt,
+  FaPhone,
   FaEnvelope,
   FaClock,
   FaFacebook,
   FaTwitter,
   FaInstagram,
   FaLinkedin,
-} from 'react-icons/fa';
+} from "react-icons/fa";
 import "./Footer.css";
 
 const Footer = ({ company, footerContent }) => {
@@ -18,15 +18,16 @@ const Footer = ({ company, footerContent }) => {
         <div className="footer-main">
           <div className="footer-logo">
             {company?.logo ? (
-              <img 
-                src={`${process.env.REACT_APP_API_URL}/storage/${company.logo}`} 
+              <img
+                src={`${process.env.REACT_APP_API_URL}/storage/${company.logo}`}
                 alt={`${company.name} logo`}
                 loading="lazy"
               />
             ) : (
-              <h3>{company?.name || "Our Company"}</h3>
+              <img src="logo.jpeg" alt="Company Logo" className="footer-logo" />
             )}
           </div>
+          <h3>{company?.name || "Our Company"}</h3>
           <p className="footer-description">
             {footerContent?.content || "Quality services for all your needs"}
           </p>
@@ -66,27 +67,43 @@ const Footer = ({ company, footerContent }) => {
           <h4>Follow Us</h4>
           <div className="social-links">
             {company?.facebook && (
-              <a href={company.facebook} target="_blank" rel="noopener noreferrer">
+              <a
+                href={company.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaFacebook />
               </a>
             )}
             {company?.twitter && (
-              <a href={company.twitter} target="_blank" rel="noopener noreferrer">
+              <a
+                href={company.twitter}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaTwitter />
               </a>
             )}
             {company?.instagram && (
-              <a href={company.instagram} target="_blank" rel="noopener noreferrer">
+              <a
+                href={company.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaInstagram />
               </a>
             )}
             {company?.linkedin && (
-              <a href={company.linkedin} target="_blank" rel="noopener noreferrer">
+              <a
+                href={company.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <FaLinkedin />
               </a>
             )}
           </div>
-          
+
           <div className="newsletter">
             <h5>Subscribe to our newsletter</h5>
             <form>
@@ -99,13 +116,8 @@ const Footer = ({ company, footerContent }) => {
 
       <div className="footer-copyright">
         <p>
-          © {new Date().getFullYear()} {company?.name || 'Our Company'}. All rights reserved.
-          {company?.terms_link && (
-            <span className="legal-links">
-              <a href={company.terms_link}>Terms of Service</a>
-              <a href={company.privacy_link}>Privacy Policy</a>
-            </span>
-          )}
+          © {new Date().getFullYear()} {company?.name || "Our Company"}. All
+          rights reserved.
         </p>
       </div>
     </footer>

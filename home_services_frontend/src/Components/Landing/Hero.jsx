@@ -36,7 +36,7 @@ const Hero = ({ company, cities, services, homeContent }) => {
           <h1>{company?.name || 'Our Services'}</h1>
 
           <form onSubmit={handleSearch} className="search-form">
-            <div className="form-group">
+            <div className="dropdown">
               <select
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
@@ -49,7 +49,7 @@ const Hero = ({ company, cities, services, homeContent }) => {
               </select>
             </div>
 
-            <div className="form-group">
+            <div className="dropdown">
               <select
                 value={selectedService}
                 onChange={(e) => setSelectedService(e.target.value)}

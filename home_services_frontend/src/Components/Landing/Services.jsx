@@ -15,7 +15,7 @@ const Services = ({ services }) => {
       {services.length > 0 ? (
         <Swiper
           modules={[Navigation, Pagination, Keyboard]}
-          slidesPerView={4}
+          slidesPerView={3}
           spaceBetween={20}
           navigation
           pagination={{ clickable: true }}
@@ -29,7 +29,7 @@ const Services = ({ services }) => {
           {services.map((service) => (
             <SwiperSlide key={service.id}>
               <div className="service-card">
-                <h4 className="service-title">{service.title}</h4>
+                <h4 className="service-title">{service.name}</h4>
                 <p className="service-description">{service.description}</p>
                 <img
                   src={
