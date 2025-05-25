@@ -1,38 +1,43 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../../config/axiosInstance';
-import './Login.css'; 
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../config/axiosInstance";
+import "./Login.css";
+import ForgotPassword from "./ForgotPassword";
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await axiosInstance.post('/login', {
+      const response = await axiosInstance.post("/login", {
         email,
-        password
+        password,
       });
 
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      
-      if (response.data.user.role === 'admin') {
-        navigate('/admin');
-      } else if (response.data.user.role === 'tasker') {
-        navigate('/tasker');
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+
+      if (response.data.user.role === "admin") {
+        navigate("/admin");
+      } else if (response.data.user.role === "tasker") {
+        navigate("/tasker");
       } else {
-        navigate('/');
+        navigate("/");
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please check your credentials and try again.');
+      setError(
+        err.response?.data?.error ||
+          "Login failed. Please check your credentials and try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -52,8 +57,7 @@ const Login = () => {
           <div className="group-login">
             <label htmlFor="email">Email</label>
             <input
-                        className="input-login"
-
+              className="input-login"
               id="email"
               type="email"
               placeholder="Enter your email"
@@ -66,7 +70,7 @@ const Login = () => {
           <div className="group-login">
             <label htmlFor="password">Password</label>
             <input
-            className="input-login"
+              className="input-login"
               id="password"
               type="password"
               placeholder="Enter your password"
@@ -77,15 +81,19 @@ const Login = () => {
           </div>
 
           <div className="forgot-password">
-            <a href="/forgot-password">Forgot password?</a>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                setShowForgotPassword(true);
+              }}
+            >
+              Forgot password?
+            </a>
           </div>
 
           <button type="submit" disabled={loading} className="login-button">
-            {loading ? (
-              <span className="spinner"></span>
-            ) : (
-              'Sign In'
-            )}
+            {loading ? <span className="spinner"></span> : "Sign In"}
           </button>
         </form>
 
@@ -98,6 +106,9 @@ const Login = () => {
           </div>
         </div>
       </div>
+      {showForgotPassword && (
+        <ForgotPassword onClose={() => setShowForgotPassword(false)} />
+      )}
     </div>
   );
 };

@@ -167,6 +167,10 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|exists:users,email',
+        ], [
+            'email.required' => 'The email address is required.',
+            'email.email' => 'The email address is invalid.',
+            'email.exists' => 'No account matches this email address.'
         ]);
 
         if ($validator->fails()) {
@@ -211,7 +215,16 @@ class AuthController extends Controller
             'token' => 'required',
             'email' => 'required|email',
             'password' => 'required|string|min:6|confirmed',
+        ], [
+            'token.required' => 'The token is required.',
+            'email.required' => 'The email address is required.',
+            'email.email' => 'The email address is invalid.',
+            'password.required' => 'The password is required.',
+            'password.min' => 'The password must be at least 6 characters.',
+            'password.confirmed' => 'The password confirmation does not match.'
         ]);
+
+
 
         if ($validator->fails()) {
             return response()->json([
