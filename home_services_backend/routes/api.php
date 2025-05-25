@@ -42,17 +42,21 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:api');
 Route::get('me', [AuthController::class, 'me'])->middleware('auth:api');
 
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
+
 
 
 //users
 Route::prefix('users')->group(function () {
     Route::get('/', [UserController::class, 'index']);
     Route::post('/', [UserController::class, 'store'])->middleware('auth:api');
-     Route::get('/{id}', [UserController::class, 'show']);
+    Route::get('/{id}', [UserController::class, 'show']);
 
 
     Route::put('/{id}', [UserController::class, 'update']);
-Route::delete('/{user}', [UserController::class, 'destroy']);
+    Route::delete('/{user}', [UserController::class, 'destroy']);
 });
 
 
@@ -135,5 +139,3 @@ Route::apiResource('paniers', PanierController::class);
 
 // admin logs
 Route::apiResource('admin-logs', AdminLogController::class);
-
-

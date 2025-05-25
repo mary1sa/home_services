@@ -21,6 +21,8 @@ import PendingTaskers from "./Components/AdminDashboard/TaskerManagement/Pending
 import CreateTasker from "./Components/AdminDashboard/TaskerManagement/CreateTasker";
 import TaskerDetails from "./Components/AdminDashboard/TaskerManagement/TaskerDetails";
 import EditTasker from "./Components/AdminDashboard/TaskerManagement/EditTasker";
+import ResetPassword from "./Components/Auth/ResetPassword";
+import ForgotPassword from "./Components/Auth/ForgotPassword";
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register-tasker" element={<RegisterTasker />} />
         <Route path="/register" element={<RegisterUser />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Admin Dashboard */}
         <Route
