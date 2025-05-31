@@ -8,8 +8,8 @@
   --info-color: #4895ef;
   --light-color: #f8f9fa;
   --dark-color: #212529;
-  --text-color: #333;
-  --text-light: #6c757d;
+  --text-color: #333 !important;
+  --text-light: #6c757d !important;
   --border-color: #e9ecef;
   --sidebar-bg: #2c3e50;
   --sidebar-text: #ffffff;

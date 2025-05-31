@@ -23,6 +23,12 @@ import TaskerDetails from "./Components/AdminDashboard/TaskerManagement/TaskerDe
 import EditTasker from "./Components/AdminDashboard/TaskerManagement/EditTasker";
 import ResetPassword from "./Components/Auth/ResetPassword";
 import ForgotPassword from "./Components/Auth/ForgotPassword";
+import CategoryList from "./Components/AdminDashboard/CategoryManagement/CategoryList";
+import CategoryCreate from "./Components/AdminDashboard/CategoryManagement/CategoryCreate";
+import CategoryEdit from "./Components/AdminDashboard/CategoryManagement/CategoryEdit";
+import ServiceList from "./Components/AdminDashboard/ServiceManagement/ServiceList";
+import ServiceCreate from "./Components/AdminDashboard/ServiceManagement/ServiceCreate";
+import ServiceEdit from "./Components/AdminDashboard/ServiceManagement/ServiceEdit";
 
 function App() {
   return (
@@ -56,6 +62,20 @@ function App() {
           <Route path="taskers/create" element={<CreateTasker />} />
           <Route path="taskers/:id" element={<TaskerDetails />} />
           <Route path="taskers/:id/edit" element={<EditTasker />} />
+          {/*Categories management*/}
+
+
+      <Route path="categorys" element={<CategoryList />} />
+      
+            <Route path="categorys/create" element={<CategoryCreate />} />
+      <Route path="category/:id" element={<CategoryEdit />} />
+
+
+          {/*Services management*/}
+<Route path="services" element={<ServiceList />} />
+      
+            <Route path="services/create" element={<ServiceCreate/>} />
+      <Route path="service/:id" element={<ServiceEdit />} />
         </Route>
 
         {/* Tasker Dashboard */}

@@ -6,7 +6,14 @@ import {
   FiSettings, FiLogOut, FiBell, FiSearch, 
   FiSun, FiMoon, FiChevronDown, FiChevronRight,
   FiUser, FiEdit, FiKey, FiMail, FiCreditCard, FiLock,
-  FiUserPlus, FiList, FiCheck
+  FiUserPlus, FiList, FiCheck,
+  FiTool,
+  FiClock,
+  FiLayers,
+  FiGrid,
+  FiPlusSquare,
+  FiPlusCircle,
+  FiBriefcase
 } from 'react-icons/fi';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -73,35 +80,23 @@ const AdminDashboard = () => {
   useEffect(() => {
    const fetchNotifications = async () => {
   try {
-    console.log('Fetching notifications...');
-    const response = await axiosInstance.get('/notifications');
-    console.log('Notifications response:', response);
+    const response = await axiosInstance.get('notifications');
     
-    if (response.data && response.data.notifications) {
-      const notifications = Array.isArray(response.data.notifications) 
-        ? response.data.notifications 
-        : [];
-      
-      console.log('Processed notifications:', notifications);
-      setNotifications(notifications);
-      setUnreadCount(notifications.filter(n => !n.read_at).length);
-    } else {
-      console.warn('Unexpected response format:', response.data);
-      setNotifications([]);
-      setUnreadCount(0);
-    }
+    // Ensure we're working with an array
+    const notifications = Array.isArray(response.data.notifications) 
+      ? response.data.notifications 
+      : [];
+    
+    setNotifications(notifications);
+    setUnreadCount(notifications.filter(n => !n.read_at).length);
   } catch (error) {
     console.error('Error fetching notifications:', error);
-    if (error.response) {
-      console.error('Response data:', error.response.data);
-      console.error('Response status:', error.response.status);
-      console.error('Response headers:', error.response.headers);
-    }
     toast.error('Failed to load notifications');
     setNotifications([]);
     setUnreadCount(0);
   }
 };
+
     // Initial fetch
     fetchNotifications();
     
@@ -181,7 +176,7 @@ const AdminDashboard = () => {
     },
     { 
       title: "Tasker Management", 
-      icon: <FiUsers />,
+      icon: <FiTool />,
       submenus: [
         { 
           title: "All Taskers", 
@@ -191,10 +186,46 @@ const AdminDashboard = () => {
         { 
           title: "Request tasker", 
           path: "taskers/pending",
-          icon: <FiUserPlus className="submenu-icon" />
+          icon:  <FiClock className="submenu-icon" />
         }
       ]
     },
+
+     { 
+      title: "Category Management", 
+      icon: <FiLayers />,
+      submenus: [
+        { 
+          title: "All Users", 
+          path: "categorys",
+          icon: <FiGrid className="submenu-icon" />
+        },
+        { 
+          title: "Add Category", 
+          path: "categorys/create",
+          icon: <FiPlusSquare className="submenu-icon" /> 
+        }
+      ]
+    },
+    
+     { 
+      title: "Service Management", 
+      icon: <FiBriefcase />,
+      submenus: [
+        { 
+          title: "All Services", 
+          path: "services",
+          icon: <FiList className="submenu-icon" />
+        },
+        { 
+          title: "Add Service", 
+          path: "services/create",
+          icon: <FiPlusCircle className="submenu-icon" />
+        }
+      ]
+    },
+
+
     { 
       title: "Financial", 
       icon: <FiDollarSign />,
@@ -202,6 +233,9 @@ const AdminDashboard = () => {
         { title: "Payments", path: "/admin/payments" }
       ]
     },
+
+
+    
     { title: "Settings", icon: <FiSettings />, path: "/admin/settings" },
   ];
 
