@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('tasker_id')->constrained('taskers')->onDelete('cascade');
             $table->foreignId('service_id')->constrained('services')->onDelete('cascade');
+               $table->integer('experience')->default(0);
             $table->timestamps();
         });
     }

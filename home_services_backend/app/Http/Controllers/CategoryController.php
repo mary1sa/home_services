@@ -14,6 +14,11 @@ class CategoryController extends Controller
         return response()->json(Category::all());
     }
 
+public function getCategoryWithServices($id)
+{
+    $category = Category::with('services')->findOrFail($id);
+    return response()->json($category);
+}
     // Store a new category
     public function store(Request $request)
     {

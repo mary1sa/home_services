@@ -7,51 +7,57 @@ use Illuminate\Http\Request;
 
 class PanierController extends Controller
 {
-    // List all paniers
+    // List all paniers for the authenticated user
     public function index()
     {
-        $paniers = Panier::with(['user', 'tasker'])->get();
+        $paniers = Panier::with(['user', 'tasker.user'])
+            ->where('user_id', auth()->id())
+            ->get();
         return response()->json($paniers);
     }
 
-    // Store a new panier
+    // Store a new panier item
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
             'tasker_id' => 'required|exists:taskers,id',
         ]);
 
-        $panier = Panier::create($validated);
+        // Check if already in panier
+        $existing = Panier::where('user_id', auth()->id())
+            ->where('tasker_id', $validated['tasker_id'])
+            ->first();
+
+        if ($existing) {
+            return response()->json(['message' => 'Tasker already in panier'], 409);
+        }
+
+        $panier = Panier::create([
+            'user_id' => auth()->id(),
+            'tasker_id' => $validated['tasker_id']
+        ]);
+
         return response()->json($panier, 201);
     }
 
-    // Show a specific panier
-    public function show($id)
+    // Delete a panier item
+    public function destroy($taskerId)
     {
-        $panier = Panier::with(['user', 'tasker'])->findOrFail($id);
-        return response()->json($panier);
-    }
+        $panier = Panier::where('user_id', auth()->id())
+            ->where('tasker_id', $taskerId)
+            ->firstOrFail();
 
-    // Update a panier
-    public function update(Request $request, $id)
-    {
-        $panier = Panier::findOrFail($id);
-
-        $validated = $request->validate([
-            'user_id' => 'sometimes|exists:users,id',
-            'tasker_id' => 'sometimes|exists:taskers,id',
-        ]);
-
-        $panier->update($validated);
-        return response()->json($panier);
-    }
-
-    // Delete a panier
-    public function destroy($id)
-    {
-        $panier = Panier::findOrFail($id);
         $panier->delete();
-        return response()->json(['message' => 'Panier deleted successfully']);
+        return response()->json(['message' => 'Tasker removed from panier']);
+    }
+
+    // Check if a tasker is in panier
+    public function check($taskerId)
+    {
+        $inPanier = Panier::where('user_id', auth()->id())
+            ->where('tasker_id', $taskerId)
+            ->exists();
+
+        return response()->json(['in_panier' => $inPanier]);
     }
 }

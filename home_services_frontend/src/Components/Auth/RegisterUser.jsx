@@ -71,7 +71,7 @@ const RegisterUser = () => {
       
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      
+       localStorage.setItem('newUser', 'true');
       navigate('/');
     } catch (err) {
   if (err.response?.data?.errors) {

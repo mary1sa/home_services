@@ -190,3 +190,310 @@
     padding: 0 10px; 
   }
 }
+.like-dislike-container {
+  margin: 10px 0;
+}
+
+.like-dislike-buttons {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.like-button, .dislike-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 5px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.like-button:hover {
+  color: #4CAF50;
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.dislike-button:hover {
+  color: #f44336;
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+.like-button.active {
+  color: #4CAF50 !important;
+}
+
+.dislike-button.active {
+  color: #f44336;
+}
+
+.like-count, .dislike-count {
+  margin-right: 10px;
+  min-width: 20px;
+  text-align: center;
+}
+
+
+
+/* Tasker Card Styles */
+.tasker-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.panier-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #ccc;
+  transition: all 0.3s;
+  padding: 5px;
+}
+
+.heart-icon {
+  transition: all 0.3s;
+}
+
+.heart-icon.filled {
+  color: red;
+}
+
+.tasker-user-info {
+  margin-bottom: 15px;
+}
+
+.tasker-contact-info {
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.tasker-contact-info p {
+  margin: 5px 0;
+  color: #555;
+}
+
+.tasker-contact-info strong {
+  color: #333;
+  margin-right: 5px;
+}
+
+/* Navbar Dropdown Styles */
+.dropdown-trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.dropdown-trigger:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.panier-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: red;
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  width: 300px;
+  z-index: 1000;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.dropdown-header {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  background-color: #f8f9fa;
+}
+
+.dropdown-section {
+  padding: 10px 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.dropdown-section h5 {
+  margin: 0 0 10px 0;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.notification-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item small {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.empty-message {
+  color: #999;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.dropdown-link {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  color: #333;
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.dropdown-link svg {
+  margin-right: 8px;
+  color: #666;
+}
+
+.dropdown-link:hover {
+  color: #0066cc;
+}
+
+.dropdown-link:hover svg {
+  color: #0066cc;
+}
+
+.category-services-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.back-button {
+  background: #f0f0f0;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.back-button:hover {
+  background: #e0e0e0;
+}
+
+.category-header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.category-header h1 {
+  font-size: 2rem;
+  color: #333;
+}
+
+.service-price {
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+.services-container {
+  margin: 20px 0;
+}
+
+.service-card {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.service-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.panier-heart {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255,255,255,0.8);
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  z-index: 10;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heart-icon {
+  color: #ccc;
+  transition: all 0.2s ease;
+}
+
+.heart-icon.filled {
+  color: #ff4757;
+}
+
+.heart-icon:hover {
+  transform: scale(1.1);
+}
+
+.tasker-user-info {
+  margin-bottom: 10px;
+}
+
+.tasker-user-info h3 {
+  margin: 0 0 5px 0;
+  font-size: 1.2rem;
+}
+
+.tasker-contact-info {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.service-description {
+  flex-grow: 1;
+  margin-bottom: 15px;
+}
+

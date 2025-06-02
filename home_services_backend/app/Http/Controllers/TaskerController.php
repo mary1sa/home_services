@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Service;
 use App\Models\Tasker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -13,7 +14,12 @@ class TaskerController extends Controller
     {
         return response()->json(Tasker::with('user','portfolioImages','services')->get());
     }
-
+public function taskers($id)
+{
+    $service = Service::with('taskers.user')->findOrFail($id);
+    
+    return response()->json( $service);
+}
     // Store a new tasker
     public function store(Request $request)
     {

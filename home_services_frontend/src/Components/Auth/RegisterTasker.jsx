@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../config/axiosInstance';
 import "./Register.css";
@@ -17,20 +16,37 @@ const RegisterTasker = () => {
     certificate_police: null,
     certificate_police_date: '',
     bio: '',
-    experience: 0,
-    photo: null
+    photo: null,
+    services: [] // Will store {id, name, experience} objects
   });
+
+  const [availableServices, setAvailableServices] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const navigate = useNavigate();
 
+  // Fetch available services
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await axiosInstance.get('/services');
+        setAvailableServices(response.data);
+      } catch (err) {
+        console.error('Failed to fetch services', err);
+        setError('Failed to load services. Please refresh the page.');
+      }
+    };
+    fetchServices();
+  }, []);
+
   const steps = [
     ['first_name', 'last_name'],
     ['email', 'password'],
     ['phone', 'city', 'country'],
+    ['services'], // Service selection step
     ['cin', 'certificate_police', 'certificate_police_date'],
-    ['bio', 'experience'],
+    ['bio'],
     ['photo']
   ];
 
@@ -48,11 +64,48 @@ const RegisterTasker = () => {
     });
   };
 
+  const handleServiceSelect = (e) => {
+    const selectedServiceId = e.target.value;
+    if (selectedServiceId && !formData.services.some(s => s.id === selectedServiceId)) {
+      const selectedService = availableServices.find(s => s.id == selectedServiceId);
+      setFormData(prev => ({
+        ...prev,
+        services: [...prev.services, { 
+          id: selectedService.id, 
+          name: selectedService.name,
+          experience: 0 
+        }]
+      }));
+    }
+  };
+
+  const handleServiceExperienceChange = (serviceId, value) => {
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.map(service => 
+        service.id === serviceId 
+          ? { ...service, experience: parseInt(value) || 0 } 
+          : service
+      )
+    }));
+  };
+
+  const removeService = (serviceId) => {
+    setFormData(prev => ({
+      ...prev,
+      services: prev.services.filter(s => s.id !== serviceId)
+    }));
+  };
+
   const nextStep = (e) => {
-        e.preventDefault();
+    e.preventDefault();
 
     const currentFields = steps[currentStep];
     const isStepValid = currentFields.every(field => {
+      if (field === 'services') {
+        return formData.services.length > 0 && 
+               formData.services.every(s => !isNaN(s.experience) && s.experience >= 0);
+      }
       if (field === 'cin' || field === 'certificate_police' || field === 'photo') {
         return formData[field] !== null;
       }
@@ -63,7 +116,15 @@ const RegisterTasker = () => {
       setCurrentStep(currentStep + 1);
       setError('');
     } else {
-      setError('Please fill all fields before proceeding.');
+      if (currentFields.includes('services')) {
+        if (formData.services.length === 0) {
+          setError('Please select at least one service');
+        } else {
+          setError('Please enter valid experience for all selected services');
+        }
+      } else {
+        setError('Please fill all fields before proceeding.');
+      }
     }
   };
 
@@ -75,6 +136,9 @@ const RegisterTasker = () => {
   const validateAllSteps = () => {
     return steps.every(stepFields => 
       stepFields.every(field => {
+        if (field === 'services') {
+          return formData.services.length > 0;
+        }
         if (field === 'cin' || field === 'certificate_police' || field === 'photo') {
           return formData[field] !== null;
         }
@@ -96,10 +160,22 @@ const RegisterTasker = () => {
 
     try {
       const formDataToSend = new FormData();
+      
+      // Add all basic fields
       Object.keys(formData).forEach(key => {
-        if (formData[key] !== null) {
-          formDataToSend.append(key, formData[key]);
+        if (key !== 'services' && formData[key] !== null) {
+          if (key === 'cin' || key === 'certificate_police' || key === 'photo') {
+            formDataToSend.append(key, formData[key], formData[key].name);
+          } else {
+            formDataToSend.append(key, formData[key]);
+          }
         }
+      });
+
+      // Add services with experience
+      formData.services.forEach((service, index) => {
+        formDataToSend.append(`services[${index}][id]`, service.id);
+        formDataToSend.append(`services[${index}][experience]`, service.experience);
       });
 
       const response = await axiosInstance.post('register-tasker', formDataToSend, {
@@ -113,7 +189,14 @@ const RegisterTasker = () => {
       
       navigate('/login', { state: { message: 'Registration successful! Your account is pending approval.' } });
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      if (err.response?.status === 422) {
+        // Handle Laravel validation errors
+        const errors = err.response.data.errors;
+        const errorMessage = Object.values(errors).flat().join('\n');
+        setError(errorMessage || 'Validation failed. Please check your inputs.');
+      } else {
+        setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -157,8 +240,7 @@ const RegisterTasker = () => {
                 <div className="group-register" key={field}>
                   <label>{field.replace('_', ' ')}*</label>
                   <input
-                                className='input_register'
-
+                    className='input_register'
                     type={field === 'email' ? 'email' : 'text'}
                     name={field}
                     value={formData[field]}
@@ -172,8 +254,7 @@ const RegisterTasker = () => {
                 <div className="group-register" key={field}>
                   <label>Password* (min 6 characters)</label>
                   <input
-                                className='input_register'
-
+                    className='input_register'
                     type="password"
                     name={field}
                     value={formData[field]}
@@ -188,28 +269,12 @@ const RegisterTasker = () => {
                 <div className="group-register" key={field}>
                   <label>Certificate Date*</label>
                   <input
-                                className='input_register'
-
+                    className='input_register'
                     type="date"
                     name={field}
                     value={formData[field]}
                     onChange={handleChange}
                     required
-                  />
-                </div>
-              );
-            case 'experience':
-              return (
-                <div className="group-register" key={field}>
-                  <label>Years of Experience</label>
-                  <input
-                                className='input_register'
-
-                    type="number"
-                    name={field}
-                    value={formData[field]}
-                    onChange={handleChange}
-                    min="0"
                   />
                 </div>
               );
@@ -235,8 +300,7 @@ const RegisterTasker = () => {
                      field === 'certificate_police' ? 'Police Certificate*' : 'Profile Photo'}
                   </label>
                   <input
-                                className='register_file'
-
+                    className='register_file'
                     type="file"
                     name={field}
                     onChange={handleFileChange}
@@ -246,6 +310,56 @@ const RegisterTasker = () => {
                   {field === 'photo' && (
                     <p className="file-hint">Recommended size: 500x500 pixels</p>
                   )}
+                </div>
+              );
+            case 'services':
+              return (
+                <div className="group-register" key={field}>
+                  <label>Select Services and Add Experience*</label>
+                  
+                  <div className="service-selection">
+                    <select
+                      className="service-dropdown"
+                      onChange={handleServiceSelect}
+                      value=""
+                    >
+                      <option value="">Select a service</option>
+                      {availableServices
+                        .filter(service => !formData.services.some(s => s.id === service.id))
+                        .map(service => (
+                          <option key={service.id} value={service.id}>
+                            {service.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+
+                  <div className="selected-services">
+                    {formData.services.map(service => (
+                      <div key={service.id} className="service-item">
+                        <div className="service-info">
+                          <span>{service.name}</span>
+                          <button 
+                            type="button" 
+                            onClick={() => removeService(service.id)}
+                            className="remove-service"
+                          >
+                            ×
+                          </button>
+                        </div>
+                        <div className="service-experience">
+                          <label>Years of Experience:</label>
+                          <input
+                            type="number"
+                            value={service.experience}
+                            onChange={(e) => handleServiceExperienceChange(service.id, e.target.value)}
+                            min="0"
+                            required
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               );
             default:

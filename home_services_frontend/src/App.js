@@ -29,6 +29,11 @@ import CategoryEdit from "./Components/AdminDashboard/CategoryManagement/Categor
 import ServiceList from "./Components/AdminDashboard/ServiceManagement/ServiceList";
 import ServiceCreate from "./Components/AdminDashboard/ServiceManagement/ServiceCreate";
 import ServiceEdit from "./Components/AdminDashboard/ServiceManagement/ServiceEdit";
+import ServiceCategory from "./Components/Landing/ServiceCategory";
+import Taskersservice from "./Components/Landing/TaskersSevice";
+import TaskersService from "./Components/Landing/TaskersSevice";
+import PanierPage from "./Components/Landing/PanierPage";
+import AllTaskers from "./Components/Landing/AllTaskers";
 
 function App() {
   return (
@@ -93,9 +98,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Home />
+
             </ProtectedRoute>
           }
         />
+<Route path="/categories/:id/services" element={<ServiceCategory />} />
+<Route path="/services/:id/taskers" element={<TaskersService />} />
+<Route path="/panier" element={<PanierPage />} />
+<Route path="/alltaskers" element={<AllTaskers />} />
+
       </Routes>
     </Router>
   );

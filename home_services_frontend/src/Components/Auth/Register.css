@@ -16,7 +16,7 @@
   font-size: 1.8rem;
 }
 
-/* Step Indicator Styles */
+
 .step-indicator-container {
   display: flex;
   align-items: center;
@@ -166,7 +166,7 @@
   text-decoration: underline;
 }
 
-/* Responsive adjustments */
+
 @media (max-width: 768px) {
   .auth-container {
     margin: 1rem;
@@ -191,4 +191,72 @@
   .step-line {
     width: 30px;
   }
+}
+
+
+.service-selection {
+  margin-bottom: 20px;
+}
+
+.service-dropdown {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.selected-services {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.service-item {
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.service-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.remove-service {
+  background: none;
+  border: none;
+  color: #ff4444;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 5px;
+}
+
+.service-experience {
+  display: flex;
+  flex-direction: column;
+}
+
+.service-experience label {
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.service-experience input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+
+.error-message {
+  color: #ff4444;
+  background-color: #ffeeee;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  white-space: pre-line;
 }

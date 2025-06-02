@@ -68,8 +68,10 @@ class AuthController extends Controller
             'certificate_police_date' => 'required|date',
             'bio'        => 'nullable|string',
             'experience' => 'nullable|integer',
-            'role'       => 'tasker'
-
+            'role'       => 'tasker',
+             'services'   => 'required|array', 
+        'services.*' => 'exists:services,id',
+'services.*.experience' => 'required|integer|min:0'
         ]);
 
         if ($validator->fails()) return response()->json($validator->errors(), 422);
@@ -103,7 +105,11 @@ class AuthController extends Controller
                 'photo'   => $photoPath,
                 'status'  => 'pending',
             ]);
-
+    $servicesWithExperience = [];
+        foreach ($request->services as $service) {
+            $servicesWithExperience[$service['id']] = ['experience' => $service['experience']];
+        }
+        $tasker->services()->attach($servicesWithExperience);
             DB::commit();
 
             $token = JWTAuth::fromUser($user);

@@ -1,12 +1,51 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-scroll";
+import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes, FaUser, FaHeart, FaBell, FaShoppingBasket } from "react-icons/fa";
+import axiosInstance from '../../config/axiosInstance';
 
 const Navbar = ({ company }) => {
   const [activeLink, setActiveLink] = useState("hero");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [panierCount, setPanierCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      const fetchPanierCount = async () => {
+        try {
+          const response = await axiosInstance.get('/paniers');
+          setPanierCount(response.data.length);
+        } catch (error) {
+          console.error('Error fetching panier:', error);
+        }
+      };
+
+      const fetchNotifications = async () => {
+        try {
+          const response = await axiosInstance.get('/notifications');
+          setNotifications(response.data);
+        } catch (error) {
+          console.error('Error fetching notifications:', error);
+        }
+      };
+
+      fetchPanierCount();
+      fetchNotifications();
+    }
+  }, [user]);
 
   const navItems = [
     { id: "hero", text: "Home", offset: -70 },
@@ -18,19 +57,96 @@ const Navbar = ({ company }) => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setScrolled(window.scrollY > 10);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/");
+  };
+
+  const renderAuthLinks = () => {
+    if (user) {
+      return (
+        <div className="user-profile">
+          <div 
+            className="dropdown-trigger" 
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          >
+            <FaUser className="user-icon" />
+            <span className="user-name">{user.first_name}</span>
+            {panierCount > 0 && (
+              <span className="panier-badge">{panierCount}</span>
+            )}
+          </div>
+          
+          {dropdownOpen && (
+            <div className="dropdown-menu">
+              <div className="dropdown-header">
+                <h4>{user.first_name} {user.last_name}</h4>
+                <p>{user.email}</p>
+              </div>
+              
+              <div className="dropdown-section">
+                <h5>Notifications</h5>
+                {notifications.length > 0 ? (
+                  notifications.map(notification => (
+                    <div key={notification.id} className="notification-item">
+                      <p>{notification.message}</p>
+                      <small>
+                        {new Date(notification.created_at).toLocaleString()}
+                      </small>
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-message">No notifications</p>
+                )}
+              </div>
+              
+              <div className="dropdown-section">
+                <h5>Panier</h5>
+                <a 
+                  href="/panier" 
+                  className="dropdown-link"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <FaShoppingBasket /> View Panier ({panierCount})
+                </a>
+              </div>
+              
+              <div className="dropdown-section">
+                <button 
+                  onClick={() => {
+                    handleLogout();
+                    setDropdownOpen(false);
+                  }} 
+                  className="dropdown-link"
+                >
+                  <FaUser /> Logout
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    } else {
+      return (
+        <div className="auth-links">
+          <a href="/register" className="auth-link">
+            Sign Up
+          </a>
+          <span className="divider">/</span>
+          <a href="/login" className="auth-link">
+            Sign In
+          </a>
+        </div>
+      );
+    }
   };
 
   return (
@@ -49,7 +165,10 @@ const Navbar = ({ company }) => {
           )}
         </div>
 
-        <div className="mobile-menu-icon" onClick={toggleMobileMenu}>
+        <div 
+          className="mobile-menu-icon" 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
           {mobileMenuOpen ? <FaTimes /> : <FaBars />}
         </div>
 
@@ -81,23 +200,7 @@ const Navbar = ({ company }) => {
             >
               Become a Tasker
             </a>
-            <div className="auth-links">
-              <a 
-                href="/register" 
-                className="auth-link"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Sign Up
-              </a>
-              <span className="divider">/</span>
-              <a 
-                href="/login" 
-                className="auth-link"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Sign In
-              </a>
-            </div>
+            {renderAuthLinks()}
           </div>
         </div>
 
@@ -105,15 +208,7 @@ const Navbar = ({ company }) => {
           <a href="/register-tasker" className="auth-link tasker-btn">
             Become a Tasker
           </a>
-          <div className="auth-links">
-            <a href="/register" className="auth-link">
-              Sign Up
-            </a>
-            <span className="divider">/</span>
-             <a href="/login" className="auth-link">
-              Sign In
-            </a>
-          </div>
+          {renderAuthLinks()}
         </div>
       </div>
     </nav>

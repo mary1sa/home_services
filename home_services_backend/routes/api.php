@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LikeController;
 use App\Models\User;
 use App\Notifications\TestNotification;
 use Illuminate\Http\Request;
@@ -64,14 +65,17 @@ Route::prefix('users')->group(function () {
 Route::apiResource('companies', CompanyController::class);
 
 // taskers
-Route::apiResource('taskers', TaskerController::class);
+Route::get('/services/{id}/taskers', [TaskerController::class, 'taskers']);
 Route::get('taskerspending', [TaskerController::class, 'pending']);
 Route::post('taskersapprove/{id}', [TaskerController::class, 'approve']);
 Route::post('taskersreject/{id}', [TaskerController::class, 'reject']);
+Route::apiResource('taskers', TaskerController::class);
+
 
 Route::get('/cities', [TaskerController::class, 'getCities']);
 
 // categories
+Route::get('/categories/{id}/services', [CategoryController::class, 'getCategoryWithServices']);
 Route::apiResource('categories', CategoryController::class);
 
 // portfolio images
@@ -117,8 +121,10 @@ Route::middleware('auth:api')->prefix('notifications')->group(function () {
     Route::delete('/', [NotificationController::class, 'clearAll']);
 });
 // locations
-Route::apiResource('locations', LocationController::class);
+Route::middleware('auth:api')->group(function(){
 
+Route::apiResource('locations', LocationController::class);
+});
 // working hours
 Route::apiResource('working-hours', WorkingHourController::class);
 
@@ -135,7 +141,14 @@ Route::apiResource('faqs', FaqController::class);
 Route::apiResource('promotion-codes', PromotionCodeController::class);
 
 // paniers
-Route::apiResource('paniers', PanierController::class);
+Route::middleware('auth:api')->group(function(){
 
+Route::apiResource('paniers', PanierController::class);
+    Route::get('/paniers/check/{taskerId}', [PanierController::class, 'check']);
+});
 // admin logs
 Route::apiResource('admin-logs', AdminLogController::class);
+Route::middleware('auth:api')->group(function(){
+     Route::post('/taskers/{taskerId}/like', [LikeController::class, 'toggleLike']);
+ Route::get('/taskers/{taskerId}/likes', [LikeController::class, 'getLikes']);
+});
