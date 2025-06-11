@@ -21,7 +21,6 @@ return new class extends Migration
             $table->date('certificate_police_date');
             $table->text('bio')->nullable();
             $table->integer('experience')->nullable();
-            $table->string('photo')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->string('rejection_reason')->nullable();
             $table->timestamps();

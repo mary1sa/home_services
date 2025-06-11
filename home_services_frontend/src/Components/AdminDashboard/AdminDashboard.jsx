@@ -196,7 +196,7 @@ const AdminDashboard = () => {
       icon: <FiLayers />,
       submenus: [
         { 
-          title: "All Users", 
+          title: "All Categories", 
           path: "categorys",
           icon: <FiGrid className="submenu-icon" />
         },
@@ -236,7 +236,7 @@ const AdminDashboard = () => {
 
 
     
-    { title: "Settings", icon: <FiSettings />, path: "/admin/settings" },
+    { title: "Settings", icon: <FiSettings />, path: "adminlist" },
   ];
 
   return (

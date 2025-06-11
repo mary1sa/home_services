@@ -34,6 +34,8 @@ import Taskersservice from "./Components/Landing/TaskersSevice";
 import TaskersService from "./Components/Landing/TaskersSevice";
 import PanierPage from "./Components/Landing/PanierPage";
 import AllTaskers from "./Components/Landing/AllTaskers";
+import AddCurrentLocation from "./Components/Landing/AddCurrentLocation";
+import AdminList from "./Components/AdminDashboard/AdminManagement/AdminList";
 
 function App() {
   return (
@@ -67,6 +69,9 @@ function App() {
           <Route path="taskers/create" element={<CreateTasker />} />
           <Route path="taskers/:id" element={<TaskerDetails />} />
           <Route path="taskers/:id/edit" element={<EditTasker />} />
+          <Route path="adminlist" element={<AdminList />} />
+
+
           {/*Categories management*/}
 
 
@@ -106,7 +111,10 @@ function App() {
 <Route path="/services/:id/taskers" element={<TaskersService />} />
 <Route path="/panier" element={<PanierPage />} />
 <Route path="/alltaskers" element={<AllTaskers />} />
-
+<Route path="/locations" element={
+            <AddCurrentLocation/>
+          
+        } />
       </Routes>
     </Router>
   );

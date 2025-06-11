@@ -21,6 +21,8 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'phone' => '1234567890',
                 'address' => '123 Admin Street',
+                'photo' => null,
+
                 'is_online' => true,
                 'role' => 'admin',
                 'created_at' => now(),
@@ -35,6 +37,8 @@ class UserSeeder extends Seeder
                 'address' => '456 User Avenue',
                 'is_online' => false,
                 'role' => 'user',
+                'photo' => null,
+
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -45,6 +49,8 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'phone' => '1231231234',
                 'address' => '789 Second Street',
+                'photo' => null,
+
                 'is_online' => true,
                 'role' => 'user',
                 'created_at' => now(),
@@ -57,6 +63,8 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'phone' => '3213214321',
                 'address' => '101 Third Avenue',
+                'photo' => null,
+
                 'is_online' => true,
                 'role' => 'user',
                 'created_at' => now(),
@@ -69,6 +77,8 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'phone' => '5556667777',
                 'address' => '202 Fourth Blvd',
+                'photo' => null,
+
                 'is_online' => false,
                 'role' => 'user',
                 'created_at' => now(),
@@ -82,6 +92,8 @@ class UserSeeder extends Seeder
                 'phone' => '5551234567',
                 'address' => '789 Tasker Lane',
                 'is_online' => true,
+                'photo' => null,
+
                 'role' => 'tasker',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -94,6 +106,8 @@ class UserSeeder extends Seeder
                 'phone' => '5557654321',
                 'address' => '321 Worker Road',
                 'is_online' => false,
+                'photo' => null,
+
                 'role' => 'tasker',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -106,6 +120,8 @@ class UserSeeder extends Seeder
                 'phone' => '5551112222',
                 'address' => '222 Helper Street',
                 'is_online' => true,
+                                'photo' => null,
+
                 'role' => 'tasker',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -119,6 +135,8 @@ class UserSeeder extends Seeder
                 'address' => '444 Fixer Avenue',
                 'is_online' => true,
                 'role' => 'tasker',
+                                'photo' => null,
+
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
@@ -130,6 +148,8 @@ class UserSeeder extends Seeder
                 'phone' => '5555555555',
                 'address' => '555 Service Road',
                 'is_online' => true,
+                                'photo' => null,
+
                 'role' => 'tasker',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -142,6 +162,8 @@ class UserSeeder extends Seeder
                 'phone' => '5556666666',
                 'address' => '666 Repair Street',
                 'is_online' => false,
+                                'photo' => null,
+
                 'role' => 'tasker',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -154,6 +176,8 @@ class UserSeeder extends Seeder
                 'phone' => '5557777777',
                 'address' => '777 Fix It Avenue',
                 'is_online' => true,
+                                'photo' => null,
+
                 'role' => 'tasker',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -166,6 +190,8 @@ class UserSeeder extends Seeder
                 'phone' => '5558888888',
                 'address' => '888 Home Service Blvd',
                 'is_online' => false,
+                                'photo' => null,
+
                 'role' => 'tasker',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -178,6 +204,8 @@ class UserSeeder extends Seeder
                 'phone' => '5559999999',
                 'address' => '999 Tasker Circle',
                 'is_online' => true,
+                                'photo' => null,
+
                 'role' => 'tasker',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -190,6 +218,8 @@ class UserSeeder extends Seeder
                 'phone' => '5550000000',
                 'address' => '1000 Fixer Lane',
                 'is_online' => false,
+                                'photo' => null,
+
                 'role' => 'tasker',
                 'created_at' => now(),
                 'updated_at' => now(),

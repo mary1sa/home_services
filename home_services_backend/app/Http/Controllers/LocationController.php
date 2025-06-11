@@ -24,7 +24,6 @@ class LocationController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'city' => 'required|string|max:255',
             'state' => 'nullable|string|max:255',
             'country' => 'nullable|string|max:255',
             'latitude' => 'nullable|numeric|between:-90,90',
@@ -49,7 +48,6 @@ class LocationController extends Controller
         $location = Location::findOrFail($id);
 
         $validated = $request->validate([
-            'city' => 'sometimes|string|max:255',
             'state' => 'sometimes|nullable|string|max:255',
             'country' => 'sometimes|nullable|string|max:255',
             'latitude' => 'sometimes|nullable|numeric|between:-90,90',

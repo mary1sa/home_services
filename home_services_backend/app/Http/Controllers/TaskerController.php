@@ -10,10 +10,26 @@ use Illuminate\Support\Facades\Storage;
 class TaskerController extends Controller
 {
     // Get all taskers
-    public function index()
-    {
-        return response()->json(Tasker::with('user','portfolioImages','services')->get());
-    }
+public function index()
+{
+    $taskers = Tasker::with([
+        'user.locations', 
+        'portfolioImages',
+        'services'
+    ])->get();
+
+    // Transform the data to include location coordinates
+    $taskers->transform(function ($tasker) {
+        if ($tasker->user && $tasker->user->locations->isNotEmpty()) {
+            $location = $tasker->user->locations->first();
+            $tasker->latitude = $location->latitude;
+            $tasker->longitude = $location->longitude;
+        }
+        return $tasker;
+    });
+
+    return response()->json($taskers);
+}
 public function taskers($id)
 {
     $service = Service::with('taskers.user')->findOrFail($id);

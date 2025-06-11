@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->boolean('is_online')->default(false);
             $table->enum('role', ['user', 'tasker', 'admin'])->default('user');
+        $table->string('photo')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
         });

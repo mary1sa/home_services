@@ -10,7 +10,7 @@ class Tasker extends Model
     use HasFactory;
     
      protected $fillable = [
-        'user_id', 'country', 'cin', 'city', 'certificate_police','certificate_police_date', 'bio', 'experience', 'photo', 'status'
+        'user_id', 'country', 'cin', 'city', 'certificate_police','certificate_police_date', 'bio', 'experience', 'status'
     ];
 
     public function user() {

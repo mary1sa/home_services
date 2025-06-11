@@ -29,6 +29,8 @@ use SoftDeletes;
         'phone',
         'address',
         'is_online',
+            'photo',
+
         'role',
         'deleted_at'
     ];

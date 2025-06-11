@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../config/axiosInstance';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
+import Select from 'react-select';
+import countryList from 'react-select-country-list';
 import "./Register.css";
 
 const RegisterTasker = () => {
@@ -10,6 +14,7 @@ const RegisterTasker = () => {
     email: '',
     password: '',
     phone: '',
+    address: '',
     city: '',
     country: '',
     cin: null,
@@ -17,7 +22,13 @@ const RegisterTasker = () => {
     certificate_police_date: '',
     bio: '',
     photo: null,
-    services: [] // Will store {id, name, experience} objects
+    services: [] 
+  });
+
+  const [previewFiles, setPreviewFiles] = useState({
+    cin: null,
+    certificate_police: null,
+    photo: null
   });
 
   const [availableServices, setAvailableServices] = useState([]);
@@ -25,6 +36,21 @@ const RegisterTasker = () => {
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const navigate = useNavigate();
+
+  const countries = useMemo(() => countryList().getData(), []);
+  const selectedCountryOption = countries.find(c => c.label === formData.country) || null;
+
+  // Steps configuration
+  const steps = [
+    ['first_name', 'last_name'],
+    ['email', 'password'],
+    ['phone', 'address'],
+    ['city', 'country'],
+    ['services'],
+    ['cin', 'certificate_police', 'certificate_police_date'],
+    ['bio'],
+    ['photo']
+  ];
 
   // Fetch available services
   useEffect(() => {
@@ -40,16 +66,6 @@ const RegisterTasker = () => {
     fetchServices();
   }, []);
 
-  const steps = [
-    ['first_name', 'last_name'],
-    ['email', 'password'],
-    ['phone', 'city', 'country'],
-    ['services'], // Service selection step
-    ['cin', 'certificate_police', 'certificate_police_date'],
-    ['bio'],
-    ['photo']
-  ];
-
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -57,11 +73,65 @@ const RegisterTasker = () => {
     });
   };
 
-  const handleFileChange = (e) => {
+  const handleCountryChange = (selectedOption) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.files[0]
+      country: selectedOption ? selectedOption.label : ''
     });
+  };
+
+  const handlePhoneChange = (value, country) => {
+    setFormData({
+      ...formData,
+      phone: value,
+      countryCode: country?.countryCode
+    });
+  };
+
+  const handleFileChange = (e) => {
+    const { name, files } = e.target;
+    const file = files[0];
+    
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        [name]: file
+      }));
+      
+      // Create preview for images (not for PDFs)
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setPreviewFiles(prev => ({
+            ...prev,
+            [name]: {
+              type: 'image',
+              url: reader.result
+            }
+          }));
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPreviewFiles(prev => ({
+          ...prev,
+          [name]: {
+            type: 'file',
+            name: file.name
+          }
+        }));
+      }
+    }
+  };
+
+  const removeFile = (fieldName) => {
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: null
+    }));
+    setPreviewFiles(prev => ({
+      ...prev,
+      [fieldName]: null
+    }));
   };
 
   const handleServiceSelect = (e) => {
@@ -189,13 +259,21 @@ const RegisterTasker = () => {
       
       navigate('/login', { state: { message: 'Registration successful! Your account is pending approval.' } });
     } catch (err) {
-      if (err.response?.status === 422) {
-        // Handle Laravel validation errors
-        const errors = err.response.data.errors;
-        const errorMessage = Object.values(errors).flat().join('\n');
-        setError(errorMessage || 'Validation failed. Please check your inputs.');
+      console.log('Full error response:', err.response);
+      if (err.response) {
+        if (err.response.status === 422 && err.response.data?.errors) {
+          const errors = err.response.data.errors;
+          const errorMessage = Object.values(errors).flat().join('\n');
+          setError(errorMessage);
+        } else if (err.response.data?.message) {
+          setError(err.response.data.message);
+        } else {
+          setError('An unexpected error occurred. Please try again.');
+        }
+      } else if (err.request) {
+        setError('Network error. Please check your connection and try again.');
       } else {
-        setError(err.response?.data?.message || 'Registration failed. Please try again.');
+        setError('An error occurred. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -223,6 +301,84 @@ const RegisterTasker = () => {
     );
   };
 
+  const renderFileUploadField = (fieldName, label, required = true) => {
+    const preview = previewFiles[fieldName];
+    
+    return (
+      <div className="group-register" key={fieldName}>
+        <label>{label}{required && '*'}</label>
+        <div className="image-upload-container">
+          {!preview ? (
+            <>
+              <label htmlFor={`${fieldName}-upload`} className="upload-area">
+                <div className="upload-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
+                    <line x1="16" y1="5" x2="22" y2="5"></line>
+                    <line x1="19" y1="2" x2="19" y2="8"></line>
+                    <circle cx="9" cy="9" r="2"></circle>
+                    <path d="M21 15l-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+                  </svg>
+                </div>
+                <div className="upload-text">
+                  Click to upload
+                  <small>or drag and drop</small>
+                </div>
+              </label>
+              <input
+                id={`${fieldName}-upload`}
+                className="file-input"
+                type="file"
+                name={fieldName}
+                onChange={handleFileChange}
+                accept={fieldName === 'photo' ? "image/*" : "image/*,.pdf"}
+                required={required}
+              />
+            </>
+          ) : (
+            <div className="image-preview">
+              {preview.type === 'image' ? (
+                <img src={preview.url} alt="Preview" />
+              ) : (
+                <div className="document-preview">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                  <span className="file-name">{preview.name}</span>
+                </div>
+              )}
+              <button 
+                type="button" 
+                className="remove-image" 
+                onClick={() => removeFile(fieldName)}
+                title="Remove file"
+              >
+                ×
+              </button>
+            </div>
+          )}
+          
+          {preview && (
+            <button 
+              type="button" 
+              className="upload-btn"
+              onClick={() => document.getElementById(`${fieldName}-upload`).click()}
+            >
+              Change File
+            </button>
+          )}
+        </div>
+        {fieldName === 'photo' && (
+          <p className="file-hint">Recommended size: 500x500 pixels</p>
+        )}
+      </div>
+    );
+  };
+
   const renderStep = () => {
     const currentFields = steps[currentStep];
     
@@ -233,9 +389,8 @@ const RegisterTasker = () => {
             case 'first_name':
             case 'last_name':
             case 'email':
-            case 'phone':
             case 'city':
-            case 'country':
+            case 'address':
               return (
                 <div className="group-register" key={field}>
                   <label>{field.replace('_', ' ')}*</label>
@@ -246,6 +401,80 @@ const RegisterTasker = () => {
                     value={formData[field]}
                     onChange={handleChange}
                     required
+                  />
+                </div>
+              );
+            case 'phone':
+              return (
+                <div className="group-register" key={field}>
+                  <label>Phone*</label>
+                  <PhoneInput
+                    country={'ma'}
+                    value={formData.phone}
+                    onChange={handlePhoneChange}
+                    inputProps={{
+                      name: 'phone',
+                      required: true,
+                      id: 'phone-input',
+                      autoComplete: 'tel'
+                    }}
+                    containerClass="phone-input-container"
+                    inputClass="phone-input-field"
+                    dropdownClass="phone-dropdown"
+                    enableSearch
+                    disableSearchIcon
+                    placeholder="Enter phone number"
+                  />
+                </div>
+              );
+            case 'country':
+              return (
+                <div className="group-register" key={field}>
+                  <label>Country*</label>
+                  <Select
+                    options={countries}
+                    value={selectedCountryOption}
+                    onChange={handleCountryChange}
+                    classNamePrefix="react-select"
+                    className="country-select"
+                    placeholder="Select a country"
+                    isClearable
+                    styles={{
+                      control: (provided) => ({
+                        ...provided,
+                        minHeight: '44px',
+                        borderColor: '#d1d5db',
+                        '&:hover': {
+                          borderColor: '#9ca3af'
+                        }
+                      }),
+                      option: (provided, state) => ({
+                        ...provided,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#f3f4f6' : 'white',
+                        color: state.isSelected ? 'white' : 'inherit',
+                      }),
+                      singleValue: (provided, state) => ({
+                        ...provided,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                      }),
+                    }}
+                    formatOptionLabel={({ label, value }) => (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <img
+                          loading="lazy"
+                          width="20"
+                          src={`https://flagcdn.com/w20/${value.toLowerCase()}.png`}
+                          alt={label}
+                          style={{ borderRadius: '2px' }}
+                        />
+                        <span>{label}</span>
+                      </div>
+                    )}
                   />
                 </div>
               );
@@ -291,27 +520,11 @@ const RegisterTasker = () => {
                 </div>
               );
             case 'cin':
+              return renderFileUploadField('cin', 'ID Document (CIN)');
             case 'certificate_police':
+              return renderFileUploadField('certificate_police', 'Police Certificate');
             case 'photo':
-              return (
-                <div className="group-register" key={field}>
-                  <label>
-                    {field === 'cin' ? 'ID Document (CIN)*' : 
-                     field === 'certificate_police' ? 'Police Certificate*' : 'Profile Photo'}
-                  </label>
-                  <input
-                    className='register_file'
-                    type="file"
-                    name={field}
-                    onChange={handleFileChange}
-                    accept="image/*,.pdf"
-                    required={field !== 'photo'}
-                  />
-                  {field === 'photo' && (
-                    <p className="file-hint">Recommended size: 500x500 pixels</p>
-                  )}
-                </div>
-              );
+              return renderFileUploadField('photo', 'Profile Photo', false);
             case 'services':
               return (
                 <div className="group-register" key={field}>

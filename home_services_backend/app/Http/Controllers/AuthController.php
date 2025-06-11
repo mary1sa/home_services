@@ -20,37 +20,46 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    public function registerUser(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string',
-            'last_name'  => 'required|string',
-            'email'      => 'required|email|unique:users',
-            'password'   => 'required|min:6',
-            'phone'      => 'required|string'
-        ]);
+  public function registerUser(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'first_name' => 'required|string',
+        'last_name'  => 'required|string',
+        'email'      => 'required|email|unique:users',
+        'password'   => 'required|min:6',
+        'phone'      => 'required|string',
+        'address'    => 'nullable|string',
+        'photo'      => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+        'role'       => 'sometimes|in:user,tasker,admin',
+    ]);
 
-        if ($validator->fails()) return response()->json($validator->errors(), 422);
+    if ($validator->fails()) return response()->json($validator->errors(), 422);
 
-        $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name'  => $request->last_name,
-            'email'      => $request->email,
-            'password'   => Hash::make($request->password),
-            'phone'      => $request->phone,
-            'role'       => 'user'
-        ]);
-
-
-        $admins = User::where('role', 'admin')->get();
-        foreach ($admins as $admin) {
-            $admin->notify(new NewUserRegistered($user));
-        }
-
-
-        $token = JWTAuth::fromUser($user);
-        return response()->json(compact('user', 'token'), 201);
+    $photoPath = null;
+    if ($request->hasFile('photo')) {
+        $photoPath = $request->file('photo')->store('photos', 'public');
     }
+
+    $user = User::create([
+        'first_name' => $request->first_name,
+        'last_name'  => $request->last_name,
+        'email'      => $request->email,
+        'password'   => Hash::make($request->password),
+        'phone'      => $request->phone,
+        'address'    => $request->address,
+        'photo'      => $photoPath,
+        'is_online'  => false, 
+        'role'       => $request->role ?? 'user', 
+    ]);
+
+    $admins = User::where('role', 'admin')->get();
+    foreach ($admins as $admin) {
+        $admin->notify(new NewUserRegistered($user));
+    }
+
+    $token = JWTAuth::fromUser($user);
+    return response()->json(compact('user', 'token'), 201);
+}
 
     public function registerTasker(Request $request)
     {
@@ -59,12 +68,14 @@ class AuthController extends Controller
             'last_name'  => 'required|string',
             'email'      => 'required|email|unique:users',
             'password'   => 'required|min:6',
+        'address'    => 'nullable|string',
+            'photo' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+
             'phone'      => 'required|string',
             'city'       => 'required|string',
             'country'    => 'nullable|string',
             'cin' => 'required|file|mimes:jpg,jpeg,png|max:2048',
             'certificate_police' => 'required|file|mimes:jpg,jpeg,png|max:2048',
-            'photo' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'certificate_police_date' => 'required|date',
             'bio'        => 'nullable|string',
             'experience' => 'nullable|integer',
@@ -89,7 +100,10 @@ class AuthController extends Controller
                 'email'      => $request->email,
                 'password'   => Hash::make($request->password),
                 'phone'      => $request->phone,
-                'role'       => 'tasker'
+                 'address' => $request->address,
+                'role'       => 'tasker',
+                'photo'   => $photoPath,
+
             ]);
 
 
@@ -102,7 +116,6 @@ class AuthController extends Controller
                 'certificate_police_date' => $request->certificate_police_date,
                 'bio'     => $request->bio,
                 'experience' => $request->experience,
-                'photo'   => $photoPath,
                 'status'  => 'pending',
             ]);
     $servicesWithExperience = [];

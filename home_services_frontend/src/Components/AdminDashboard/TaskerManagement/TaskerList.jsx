@@ -299,8 +299,8 @@ const TaskerList = () => {
                     <div className="profile-image-container">
                       <img
                         src={
-                          tasker.photo
-                            ? `http://localhost:8000/storage/${tasker.photo}`
+                          tasker.user.photo
+                            ? `http://localhost:8000/storage/${tasker.user.photo}`
                             : '/anony.jpg'
                         }
                         alt={`${tasker.user?.first_name || 'Unknown'} ${tasker.user?.last_name || 'User'}`}

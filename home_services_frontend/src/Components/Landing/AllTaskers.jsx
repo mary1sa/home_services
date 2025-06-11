@@ -1,12 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import { useGeolocated } from "react-geolocated";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import "leaflet/dist/leaflet.css";
 import axiosInstance from '../../config/axiosInstance';
-import { FaThumbsUp, FaThumbsDown, FaHeart, FaRegHeart } from 'react-icons/fa';
+import { FaThumbsUp, FaThumbsDown, FaHeart, FaRegHeart, FaFilter, FaTimes, FaMapMarkerAlt } from 'react-icons/fa';
+import "./AllTaskers.css";
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
+
+const userLocationIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
 
 const AllTaskers = () => {
   const navigate = useNavigate();
@@ -22,43 +43,69 @@ const AllTaskers = () => {
     service: '',
     city: ''
   });
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [showMap, setShowMap] = useState(false);
+
+  // Geolocation hook
+  const { coords, isGeolocationAvailable, isGeolocationEnabled } = useGeolocated({
+    positionOptions: {
+      enableHighAccuracy: true,
+    },
+    userDecisionTimeout: 5000,
+  });
+
+  const likeSound = useRef(null);
+  const dislikeSound = useRef(null);
+  const favoriteSound = useRef(null);
+
+  useEffect(() => {
+    likeSound.current = new Audio('/sounds/like.WAV');
+    dislikeSound.current = new Audio('/sounds/dislike.WAV');
+    favoriteSound.current = new Audio('/sounds/favorite.WAV');
+    
+    likeSound.current.volume = 0.5;
+    dislikeSound.current.volume = 0.5;
+    favoriteSound.current.volume = 0.5;
+
+    return () => {
+      likeSound.current = null;
+      dislikeSound.current = null;
+      favoriteSound.current = null;
+    };
+  }, []);
 
   // Fetch initial data
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        // Fetch panier items
-        const panierResponse = await axiosInstance.get('/paniers');
-        setPanierItems(panierResponse.data.map(item => item.tasker_id));
+        const [panierRes, taskersRes, servicesRes, citiesRes] = await Promise.all([
+          axiosInstance.get('/paniers'),
+          axiosInstance.get('/taskers'),
+          axiosInstance.get('/services'),
+          axiosInstance.get('/cities')
+        ]);
 
-        // Fetch all taskers
-        const taskersResponse = await axiosInstance.get('/taskers');
-        setTaskers(taskersResponse.data);
-        setFilteredTaskers(taskersResponse.data);
+        setPanierItems(panierRes.data.map(item => item.tasker_id));
+        setTaskers(taskersRes.data);
+        setFilteredTaskers(taskersRes.data);
+        setServices(servicesRes.data);
+        setCities(citiesRes.data);
 
-        // Fetch likes for each tasker
-        const likesPromises = taskersResponse.data.map(tasker => 
-          fetchTaskerLikes(tasker.id)
+        const likesResults = await Promise.all(
+          taskersRes.data.map(tasker => fetchTaskerLikes(tasker.id))
         );
-        const likesResults = await Promise.all(likesPromises);
         
         const initialLikesData = {};
-        taskersResponse.data.forEach((tasker, index) => {
+        taskersRes.data.forEach((tasker, index) => {
           initialLikesData[tasker.id] = likesResults[index];
         });
         setLikesData(initialLikesData);
 
-        // Fetch services
-        const servicesResponse = await axiosInstance.get('/services');
-        setServices(servicesResponse.data);
-
-        // Fetch cities
-        const citiesResponse = await axiosInstance.get('/cities');
-        setCities(citiesResponse.data);
-
       } catch (error) {
         console.error('Error fetching initial data:', error);
-        setError('Failed to load data');
+        setError('Failed to load data. Please refresh the page.');
       } finally {
         setLoading(false);
       }
@@ -72,13 +119,13 @@ const AllTaskers = () => {
     
     if (filters.service) {
       result = result.filter(tasker => 
-        tasker.services.some(service => service.id.toString() === filters.service)
+        tasker.services?.some(service => service.id.toString() === filters.service)
       );
     }
     
     if (filters.city) {
       result = result.filter(tasker => 
-        tasker.city.toLowerCase() === filters.city.toLowerCase()
+        tasker.city?.toLowerCase() === filters.city.toLowerCase()
       );
     }
     
@@ -103,49 +150,37 @@ const AllTaskers = () => {
     }
   };
 
+  const playSound = (soundRef) => {
+    if (soundEnabled && soundRef.current) {
+      soundRef.current.currentTime = 0;
+      soundRef.current.play().catch(e => console.log("Audio play failed:", e));
+    }
+  };
+
   const handleLike = async (taskerId, isLike) => {
     try {
+      if (isLike) {
+        playSound(likeSound);
+      } else {
+        playSound(dislikeSound);
+      }
+      
       const current = likesData[taskerId] || { likes: 0, dislikes: 0, userLike: null };
       const isSameVote = current.userLike?.is_like === isLike;
       
-      setLikesData(prev => {
-        const newData = { ...prev };
-        const current = newData[taskerId] || { likes: 0, dislikes: 0, userLike: null };
-        
-        if (isSameVote) {
-          newData[taskerId] = {
-            ...current,
-            likes: isLike ? current.likes - 1 : current.likes,
-            dislikes: isLike ? current.dislikes : current.dislikes - 1,
-            userLike: null
-          };
-        } else {
-          const wasOppositeVote = current.userLike?.is_like === !isLike;
-          
-          newData[taskerId] = {
-            ...current,
-            likes: isLike 
-              ? (wasOppositeVote ? current.likes + 1 : current.likes + 1)
-              : (wasOppositeVote ? current.likes - 1 : current.likes),
-            dislikes: isLike 
-              ? (wasOppositeVote ? current.dislikes - 1 : current.dislikes)
-              : (wasOppositeVote ? current.dislikes + 1 : current.dislikes + 1),
-            userLike: isSameVote ? null : { is_like: isLike }
-          };
+      setLikesData(prev => ({
+        ...prev,
+        [taskerId]: {
+          likes: isSameVote ? current.likes - (isLike ? 1 : 0) : current.likes + (isLike ? 1 : 0),
+          dislikes: isSameVote ? current.dislikes - (isLike ? 0 : 1) : current.dislikes + (isLike ? 0 : 1),
+          userLike: isSameVote ? null : { is_like: isLike }
         }
-        
-        return newData;
-      });
+      }));
 
       await axiosInstance.post(`/taskers/${taskerId}/like`, {
         is_like: isSameVote ? null : isLike
       });
       
-      const updatedLikes = await fetchTaskerLikes(taskerId);
-      setLikesData(prev => ({
-        ...prev,
-        [taskerId]: updatedLikes
-      }));
     } catch (error) {
       console.error('Error toggling like:', error);
       const originalLikes = await fetchTaskerLikes(taskerId);
@@ -158,6 +193,8 @@ const AllTaskers = () => {
 
   const togglePanier = async (taskerId) => {
     try {
+      playSound(favoriteSound);
+      
       const isInPanier = panierItems.includes(taskerId);
       
       if (isInPanier) {
@@ -174,10 +211,7 @@ const AllTaskers = () => {
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFilters(prev => ({ ...prev, [name]: value }));
   };
 
   const clearFilters = () => {
@@ -187,62 +221,143 @@ const AllTaskers = () => {
     });
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
-  if (error) return <div className="error">{error}</div>;
+  const toggleMobileFilters = () => setShowMobileFilters(!showMobileFilters);
+
+  const toggleSound = () => {
+    setSoundEnabled(prev => !prev);
+  };
+
+  const handleLocationClick = (tasker) => {
+    if (tasker.latitude && tasker.longitude) {
+      setSelectedLocation({
+        tasker: {
+          lat: parseFloat(tasker.latitude),
+          lng: parseFloat(tasker.longitude),
+          name: `${tasker.user?.first_name} ${tasker.user?.last_name}`
+        },
+        user: coords ? {
+          lat: coords.latitude,
+          lng: coords.longitude,
+          name: "Your Location"
+        } : null
+      });
+      setShowMap(true);
+    }
+  };
+
+  const closeMap = () => {
+    setShowMap(false);
+    setSelectedLocation(null);
+  };
+
+  const renderLocation = (tasker) => {
+    if (!tasker.latitude || !tasker.longitude) {
+      return (
+        <div className="location">
+          <FaMapMarkerAlt className="location-icon" />
+          <span className="city">{tasker.city}</span>
+          {tasker.country && <span className="country">, {tasker.country}</span>}
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        className="location clickable"
+        onClick={() => handleLocationClick(tasker)}
+        title="View location on map"
+      >
+        <FaMapMarkerAlt className="location-icon" />
+        <span className="city">{tasker.city}</span>
+        {tasker.country && <span className="country">, {tasker.country}</span>}
+        <span className="coordinates">(View on map)</span>
+      </div>
+    );
+  };
+
+  if (loading) return (
+    <div className="loading-container">
+      <div className="loading-spinner"></div>
+      <p>Loading taskers...</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="error-container">
+      <p>{error}</p>
+      <button onClick={() => window.location.reload()}>Try Again</button>
+    </div>
+  );
 
   return (
-    <div className="taskers-list-page">
-      <h1>All Available Taskers</h1>
+    <div className="all-taskers-container">
+      <div className="page-header">
+        <h1>Find Your Perfect Tasker</h1>
+        <div className="header-controls">
+          <button 
+            className="mobile-filter-toggle"
+            onClick={toggleMobileFilters}
+          >
+            {showMobileFilters ? <FaTimes /> : <FaFilter />}
+            Filters
+          </button>
+          <button 
+            className={`sound-toggle ${soundEnabled ? 'on' : 'off'}`}
+            onClick={toggleSound}
+            aria-label={soundEnabled ? "Mute sounds" : "Unmute sounds"}
+          >
+            {soundEnabled ? '🔊' : '🔇'}
+          </button>
+        </div>
+      </div>
 
-      <div className="filters-container">
-        <div className="filter-group">
-          <label htmlFor="service">Filter by Service:</label>
-          <select 
-            id="service" 
-            name="service" 
+      <div className={`filters-section ${showMobileFilters ? 'mobile-visible' : ''}`}>
+        <div className="filter-group-tasker">
+          <label htmlFor="service">Service Needed</label>
+          <select
+            id="service"
+            name="service"
+            className='select-tasker'
             value={filters.service}
             onChange={handleFilterChange}
+
           >
             <option value="">All Services</option>
             {services.map(service => (
-              <option key={service.id} value={service.id}>
-                {service.name}
-              </option>
+              <option key={service.id} value={service.id}>{service.name}</option>
             ))}
           </select>
         </div>
 
-        <div className="filter-group">
-          <label htmlFor="city">Filter by City:</label>
-          <select 
-            id="city" 
-            name="city" 
+        <div className="filter-group-tasker">
+          <label htmlFor="city">Location</label>
+          <select
+            id="city"
+            name="city"
+            className='select-tasker'
             value={filters.city}
             onChange={handleFilterChange}
           >
             <option value="">All Cities</option>
             {cities.map(city => (
-              <option key={city} value={city}>
-                {city}
-              </option>
+              <option key={city} value={city}>{city}</option>
             ))}
           </select>
         </div>
 
-        <button 
-          onClick={clearFilters}
-          className="clear-filters-btn"
-        >
-          Clear Filters
-        </button>
+        <div className="filter-actions">
+          <button onClick={clearFilters} className="clear-filters">
+            Clear All
+          </button>
+        </div>
       </div>
 
-      <div className="results-count">
-        {filteredTaskers.length} taskers found
+      <div className="results-summary">
+        <p>{filteredTaskers.length} {filteredTaskers.length === 1 ? 'Tasker' : 'Taskers'} Available</p>
       </div>
 
       {filteredTaskers.length > 0 ? (
-        <div className="taskers-container">
+        <div className="taskers-grid">
           <Swiper
             modules={[Navigation, Pagination]}
             slidesPerView={1}
@@ -251,7 +366,8 @@ const AllTaskers = () => {
             pagination={{ clickable: true }}
             breakpoints={{
               640: { slidesPerView: 2 },
-              1024: { slidesPerView: 3 }
+              1024: { slidesPerView: 3 },
+              1280: { slidesPerView: 4 }
             }}
           >
             {filteredTaskers.map((tasker) => {
@@ -263,72 +379,83 @@ const AllTaskers = () => {
               return (
                 <SwiperSlide key={tasker.id}>
                   <div className="tasker-card">
-                    <div className="card-header">
-                      {tasker.photo && (
+                    <div className="card-media">
+                      {tasker.photo ? (
                         <img
                           src={`${process.env.REACT_APP_API_URL}/storage/${tasker.photo}`}
                           alt={`${tasker.user?.first_name} ${tasker.user?.last_name}`}
                           className="tasker-image"
+                          loading="lazy"
                         />
+                      ) : (
+                        <div className="avatar-placeholder">
+                          {tasker.user?.first_name?.charAt(0)}{tasker.user?.last_name?.charAt(0)}
+                        </div>
                       )}
                       <button 
                         onClick={() => togglePanier(tasker.id)}
-                        className="panier-heart"
-                        aria-label={isInPanier ? "Remove from panier" : "Add to panier"}
+                        className={`favorite-btn ${isInPanier ? 'active' : ''}`}
                       >
-                        {isInPanier ? (
-                          <FaHeart className="heart-icon filled" />
-                        ) : (
-                          <FaRegHeart className="heart-icon" />
-                        )}
+                        {isInPanier ? <FaHeart /> : <FaRegHeart />}
                       </button>
                     </div>
 
-                    <div className="tasker-user-info">
-                      <h3>{tasker.user?.first_name} {tasker.user?.last_name}</h3>
-                      <div className="tasker-location">
-                        <p><strong>Location:</strong> {tasker.city}, {tasker.country}</p>
+                    <div className="card-content">
+                      <h3 className="tasker-name">{tasker.user?.first_name} {tasker.user?.last_name}</h3>
+                      
+                      <div className="tasker-meta">
+                        {renderLocation(tasker)}
+                        <div className="experience">
+                          {tasker.experience || '0'} year{tasker.experience !== 1 ? 's' : ''} experience
+                        </div>
                       </div>
-                      <div className="tasker-services">
-                        <p><strong>Services:</strong></p>
-                        <ul>
-                          {tasker.services?.map(service => (
-                            <li key={service.id}>{service.name}</li>
-                          ))}
-                        </ul>
+
+                      {tasker.bio && (
+                        <p className="bio">{tasker.bio.substring(0, 100)}{tasker.bio.length > 100 ? '...' : ''}</p>
+                      )}
+
+                      {tasker.services?.length > 0 && (
+                        <div className="services">
+                          <h4>Services Offered</h4>
+                          <div className="service-tags">
+                            {tasker.services.slice(0, 3).map(service => (
+                              <span key={service.id} className="service-tag">
+                                {service.name}
+                              </span>
+                            ))}
+                            {tasker.services.length > 3 && (
+                              <span className="more-tag">+{tasker.services.length - 3} more</span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="card-footer">
+                        <div className="rating">
+                          <button
+                            onClick={() => handleLike(tasker.id, true)}
+                            className={`like-btn ${isLiked ? 'active' : ''}`}
+                          >
+                            <FaThumbsUp />
+                            <span>{taskerLikes.likes}</span>
+                          </button>
+                          <button
+                            onClick={() => handleLike(tasker.id, false)}
+                            className={`dislike-btn ${isDisliked ? 'active' : ''}`}
+                          >
+                            <FaThumbsDown />
+                            <span>{taskerLikes.dislikes}</span>
+                          </button>
+                        </div>
+
+                        <button
+                          className="view-profile-btn"
+                          onClick={() => navigate(`/taskers/${tasker.id}`)}
+                        >
+                          View Profile
+                        </button>
                       </div>
                     </div>
-                    <p className="tasker-bio">{tasker.bio || 'No bio available'}</p>
-                    <p className="tasker-experience">Experience: {tasker.experience || '0'} years</p>
-                    
-                    <div className="like-dislike-container">
-                      <div className="like-dislike-buttons">
-                        <button 
-                          onClick={() => handleLike(tasker.id, true)}
-                          className={`like-button ${isLiked ? 'active' : ''}`}
-                          aria-label="Like"
-                        >
-                          <FaThumbsUp />
-                        </button>
-                        <span className="like-count">{taskerLikes.likes}</span>
-                        
-                        <button 
-                          onClick={() => handleLike(tasker.id, false)}
-                          className={`dislike-button ${isDisliked ? 'active' : ''}`}
-                          aria-label="Dislike"
-                        >
-                          <FaThumbsDown />
-                        </button>
-                        <span className="dislike-count">{taskerLikes.dislikes}</span>
-                      </div>
-                    </div>
-                    
-                    <button 
-                      className="view-button"
-                      onClick={() => navigate(`/taskers/${tasker.id}`)}
-                    >
-                      View Profile
-                    </button>
                   </div>
                 </SwiperSlide>
               );
@@ -336,9 +463,96 @@ const AllTaskers = () => {
           </Swiper>
         </div>
       ) : (
-        <div className="no-taskers">
-          <p>No taskers match your filters</p>
-          <button onClick={clearFilters}>Clear filters</button>
+        <div className="no-results">
+          <div className="no-results-content">
+            <h3>No taskers match your filters</h3>
+            <p>Try adjusting your search criteria</p>
+            <button onClick={clearFilters}>Clear All Filters</button>
+          </div>
+        </div>
+      )}
+
+      {/* Map Modal */}
+      {showMap && selectedLocation && (
+        <div className="map-modal">
+          <div className="map-modal-content">
+            <button className="close-map-btn" onClick={closeMap}>
+              &times;
+            </button>
+            <h3>{selectedLocation.tasker.name}'s Location</h3>
+            
+            {!isGeolocationAvailable && (
+              <div className="geo-warning">
+                Geolocation is not available in your browser
+              </div>
+            )}
+            
+            {isGeolocationAvailable && !isGeolocationEnabled && (
+              <div className="geo-warning">
+                Geolocation is not enabled. Please enable it to see your location.
+              </div>
+            )}
+
+            <div className="map-container">
+              <MapContainer
+                center={[selectedLocation.tasker.lat, selectedLocation.tasker.lng]}
+                zoom={13}
+                style={{ height: '400px', width: '100%' }}
+              >
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                />
+                
+                {/* Tasker's Marker */}
+                <Marker 
+                  position={[selectedLocation.tasker.lat, selectedLocation.tasker.lng]}
+                >
+                  <Popup>
+                    <div className="map-popup">
+                      <FaMapMarkerAlt className="popup-icon" />
+                      <strong>{selectedLocation.tasker.name}</strong>
+                      <div className="popup-coordinates">
+                        Latitude: {selectedLocation.tasker.lat.toFixed(4)}, 
+                        Longitude: {selectedLocation.tasker.lng.toFixed(4)}
+                      </div>
+                    </div>
+                  </Popup>
+                </Marker>
+                
+                {/* User's Marker */}
+                {selectedLocation.user && (
+                  <Marker 
+                    position={[selectedLocation.user.lat, selectedLocation.user.lng]}
+                    icon={userLocationIcon}
+                  >
+                    <Popup>
+                      <div className="map-popup">
+                        <FaMapMarkerAlt className="popup-icon user" />
+                        <strong>Your Location</strong>
+                        <div className="popup-coordinates">
+                          Latitude: {selectedLocation.user.lat.toFixed(4)}, 
+                          Longitude: {selectedLocation.user.lng.toFixed(4)}
+                        </div>
+                      </div>
+                    </Popup>
+                  </Marker>
+                )}
+              </MapContainer>
+            </div>
+            <div className="map-actions">
+              <button 
+                className="directions-btn"
+                onClick={() => window.open(
+                  `https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.tasker.lat},${selectedLocation.tasker.lng}&origin=${selectedLocation.user?.lat},${selectedLocation.user?.lng}`,
+                  '_blank'
+                )}
+                disabled={!selectedLocation.user}
+              >
+                Get Directions (Google Maps)
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

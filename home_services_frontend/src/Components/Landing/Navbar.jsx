@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-scroll";
 import { useNavigate } from "react-router-dom";
 import "./Navbar.css";
-import { FaBars, FaTimes, FaUser, FaHeart, FaBell, FaShoppingBasket } from "react-icons/fa";
+import { FaBars, FaTimes, FaUser, FaHeart, FaBell, FaShoppingBasket, FaMapMarkerAlt } from "react-icons/fa";
 import axiosInstance from '../../config/axiosInstance';
+import AddCurrentLocation from './AddCurrentLocation';
 
 const Navbar = ({ company }) => {
   const [activeLink, setActiveLink] = useState("hero");
@@ -106,6 +107,11 @@ const Navbar = ({ company }) => {
                 ) : (
                   <p className="empty-message">No notifications</p>
                 )}
+              </div>
+              
+              <div className="dropdown-section">
+                <h5>Location</h5>
+                <AddCurrentLocation userId={user.id} />
               </div>
               
               <div className="dropdown-section">

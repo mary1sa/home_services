@@ -27,7 +27,7 @@ const UserList = () => {
 
   
   const [currentPage, setCurrentPage] = useState(4);
-  const [usersPerPage] = useState(1);
+  const [usersPerPage] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -290,7 +290,27 @@ const UserList = () => {
                       <FiCheck className="checkbox-icon" />
                     </label>
                   </td>
-                  <td>{user.id}</td>
+                  <td data-label="ID">
+                    <div className="profile-image-container">
+                      <img
+                        src={
+                         user.photo
+                            ? `http://localhost:8000/storage/${user.photo}`
+                            : '/anony.jpg'
+                        }
+                        alt={`${user.first_name || 'Unknown'} ${user?.last_name || 'User'}`}
+                        className="profile-image"
+                      />
+                      <div className="user-info">
+                        <div className="name-container">
+                          <span className="user-name">
+                            {user?.first_name || 'Unknown'} {user?.last_name || 'User'}
+                          </span>
+                        </div>
+                        <span className="user-id">ID: #{user.id}</span>
+                      </div>
+                    </div>
+                  </td>
                   <td>{user.first_name} {user.last_name}</td>
                   <td>{user.email}</td>
                   <td className="capitalize">{user.role}</td>

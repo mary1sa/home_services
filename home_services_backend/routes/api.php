@@ -59,7 +59,10 @@ Route::prefix('users')->group(function () {
     Route::put('/{id}', [UserController::class, 'update']);
     Route::delete('/{user}', [UserController::class, 'destroy']);
 });
-
+Route::middleware('auth:api')->group(function () {
+    Route::get('/profile', [UserController::class, 'profile']);
+    Route::put('/profile', [UserController::class, 'updateProfile']);
+});
 
 //companies
 Route::apiResource('companies', CompanyController::class);
@@ -122,6 +125,7 @@ Route::middleware('auth:api')->prefix('notifications')->group(function () {
 });
 // locations
 Route::middleware('auth:api')->group(function(){
+Route::get('/taskers/{id}/location', [LocationController::class, 'getTaskerLocation']);
 
 Route::apiResource('locations', LocationController::class);
 });

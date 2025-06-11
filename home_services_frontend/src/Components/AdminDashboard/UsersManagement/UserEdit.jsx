@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useMemo  } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosInstance from '../../../config/axiosInstance';
 import PhoneInput from 'react-phone-input-2';
@@ -20,12 +20,10 @@ const UserEdit = () => {
     address: '',
     role: 'user',
     city: '',
-    cin: '',
-    certificate_police: '',
-    certificate_police_date: '',
-    bio: '',
-    experience: '',
     country: '',
+    bio: '',
+    certificate_police_date: '',
+    services: [],
     photo: null,
     current_photo: null
   });
@@ -44,14 +42,20 @@ const UserEdit = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
+  const [availableServices, setAvailableServices] = useState([]);
   const countries = useMemo(() => countryList().getData(), []);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axiosInstance.get(`/users/${id}`);
-        const user = response.data;
-        
+        // Fetch user data
+        const userResponse = await axiosInstance.get(`/users/${id}`);
+        const user = userResponse.data;
+
+        // Fetch available services
+        const servicesResponse = await axiosInstance.get('/services');
+        setAvailableServices(servicesResponse.data);
+
         setFormData({
           first_name: user.first_name || '',
           last_name: user.last_name || '',
@@ -61,12 +65,10 @@ const UserEdit = () => {
           address: user.address || '',
           role: user.role || 'user',
           city: user.tasker?.city || '',
-          cin: user.tasker?.cin || '',
-          certificate_police: user.tasker?.certificate_police || '',
-          certificate_police_date: user.tasker?.certificate_police_date || '',
-          bio: user.tasker?.bio || '',
-          experience: user.tasker?.experience || '',
           country: user.tasker?.country || '',
+          bio: user.tasker?.bio || '',
+          certificate_police_date: user.tasker?.certificate_police_date || '',
+          services: user.tasker?.services || [],
           photo: null,
           current_photo: user.tasker?.photo || null
         });
@@ -78,7 +80,7 @@ const UserEdit = () => {
           }));
         }
       } catch (err) {
-        console.error('Error fetching user:', err);
+        console.error('Error fetching data:', err);
         setErrors({ 
           general: err.response?.data?.message || 'Error fetching user data' 
         });
@@ -87,7 +89,7 @@ const UserEdit = () => {
       }
     };
 
-    fetchUser();
+    fetchData();
   }, [id]);
 
   const handleChange = (e) => {
@@ -95,6 +97,17 @@ const UserEdit = () => {
     setFormData(prev => ({ 
       ...prev, 
       [name]: value 
+    }));
+  };
+
+  const handleRemoveImage = (fieldName) => {
+    setFiles(prev => ({
+      ...prev,
+      [fieldName]: null
+    }));
+    setPreviews(prev => ({
+      ...prev,
+      [fieldName]: null
     }));
   };
 
@@ -132,26 +145,38 @@ const UserEdit = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
 
-    
+  const handleServiceSelect = (e) => {
+    const selectedServiceId = e.target.value;
+    if (selectedServiceId && !formData.services.some(s => s.id === selectedServiceId)) {
+      const selectedService = availableServices.find(s => s.id == selectedServiceId);
+      setFormData(prev => ({
+        ...prev,
+        services: [...prev.services, { 
+          id: selectedService.id, 
+          name: selectedService.name,
+          experience: 0 
+        }]
+      }));
+    }
+  };
+
+  const handleServiceExperienceChange = (serviceId, value) => {
     setFormData(prev => ({
       ...prev,
-      [name]: file
+      services: prev.services.map(service => 
+        service.id === serviceId 
+          ? { ...service, experience: parseInt(value) || 0 } 
+          : service
+      )
     }));
   };
 
-  const removeFile = (fieldName) => {
-    setFiles(prev => ({
-      ...prev,
-      [fieldName]: null
-    }));
-    setPreviews(prev => ({
-      ...prev,
-      [fieldName]: null
-    }));
+  const removeService = (serviceId) => {
     setFormData(prev => ({
       ...prev,
-      [fieldName]: null
+      services: prev.services.filter(s => s.id !== serviceId)
     }));
   };
 
@@ -161,24 +186,43 @@ const UserEdit = () => {
     setErrors({});
     setSuccessMessage('');
 
+    // Validate services if role is tasker
+    if (formData.role === 'tasker' && formData.services.length === 0) {
+      setErrors(prev => ({
+        ...prev,
+        services: ['Please select at least one service']
+      }));
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const formDataToSend = new FormData();
       
-      Object.keys(formData).forEach(key => {
-        if (formData[key] !== null && formData[key] !== undefined && key !== 'current_photo') {
+      // Add all basic fields
+      for (const key in formData) {
+        if (key !== 'services' && key !== 'current_photo' && formData[key] !== null && formData[key] !== undefined) {
           if (key === 'certificate_police_date' && formData[key]) {
             formDataToSend.append(key, new Date(formData[key]).toISOString());
           } else {
             formDataToSend.append(key, formData[key]);
           }
         }
-      });
+      }
 
-     
+      // Add files
       for (const key in files) {
         if (files[key]) {
           formDataToSend.append(key, files[key]);
         }
+      }
+
+      // Add services with experience if role is tasker
+      if (formData.role === 'tasker') {
+        formData.services.forEach((service, index) => {
+          formDataToSend.append(`services[${index}][id]`, service.id);
+          formDataToSend.append(`services[${index}][experience]`, service.experience);
+        });
       }
 
       const response = await axiosInstance.put(`/users/${id}`, formDataToSend, {
@@ -242,6 +286,47 @@ const UserEdit = () => {
       <form onSubmit={handleSubmit} className="user-form">
         <div className="form-section">
           <h2 className="section-title">Basic Information</h2>
+                    
+          <div className="profile-photo-section">
+            <div className="profile-photo-container">
+              <label htmlFor="photo" className="profile-photo-upload-label">
+                {previews.photo ? (
+                  <div className="profile-photo-preview-container">
+                    <img 
+                      src={previews.photo} 
+                      alt="Profile preview" 
+                      className="profile-photo-preview" 
+                    />
+                    <button 
+                      type="button" 
+                      className="profile-photo-remove-btn"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleRemoveImage('photo');
+                      }}
+                    >
+                      <FiX />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="profile-photo-placeholder">
+                    <FiUser className="profile-photo-icon" />
+                    <span>Upload Photo</span>
+                  </div>
+                )}
+              </label>
+              <input
+                id="photo"
+                type="file"
+                name="photo"
+                onChange={handleFileChange}
+                className="profile-photo-input"
+                accept="image/jpeg,image/png"
+              />
+            </div>
+            {errors.photo && <p className="error-text profile-photo-error">{errors.photo}</p>}
+          </div>
+
           <div className="input-grid">
             <div className="input-group">
               <label className="input-label" htmlFor="first_name">
@@ -366,208 +451,253 @@ const UserEdit = () => {
         </div>
 
         {formData.role === 'tasker' && (
-          <div className="form-section">
-            <h2 className="section-title">Tasker Information</h2>
-            
-            <div className="input-grid">
-              <div className="input-group">
-                <label className="input-label" htmlFor="city">
-                  City*
-                </label>
-                <input
-                  type="text"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  className={`input-field ${errors.city ? 'input-error' : ''}`}
-                  required
-                />
-                {errors.city && <p className="error-text">{errors.city}</p>}
+          <>
+            <div className="form-section">
+              <h2 className="section-title">Tasker Details</h2>
+              
+              <div className="input-grid">
+                <div className="input-group">
+                  <label className="input-label" htmlFor="city">
+                    City*
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    className={`input-field ${errors.city ? 'input-error' : ''}`}
+                    required
+                  />
+                  {errors.city && <p className="error-text">{errors.city}</p>}
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label" htmlFor="country">
+                    Country
+                  </label>
+                  <Select
+                    id="country"
+                    name="country"
+                    options={countries}
+                    value={selectedCountryOption}
+                    onChange={handleCountryChange}
+                    classNamePrefix="react-select"
+                    className={`country-select ${errors.country ? 'input-error' : ''}`}
+                    placeholder="Select a country"
+                    isClearable
+                    styles={{
+                      control: (provided) => ({
+                        ...provided,
+                        minHeight: '44px',
+                        borderColor: errors.country ? '#ef4444' : '#d1d5db',
+                        '&:hover': {
+                          borderColor: errors.country ? '#ef4444' : '#9ca3af'
+                        }
+                      }),
+                      option: (provided, state) => ({
+                        ...provided,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#f3f4f6' : 'white',
+                        color: state.isSelected ? 'white' : 'inherit',
+                      }),
+                      singleValue: (provided, state) => ({
+                        ...provided,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                      }),
+                    }}
+                    formatOptionLabel={({ label, value }) => (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <img
+                          loading="lazy"
+                          width="20"
+                          src={`https://flagcdn.com/w20/${value.toLowerCase()}.png`}
+                          alt={label}
+                          style={{ borderRadius: '2px' }}
+                        />
+                        <span>{label}</span>
+                      </div>
+                    )}
+                  />
+                  {errors.country && <p className="error-text">{errors.country}</p>}
+                </div>
               </div>
 
-              <div className="input-group">
-                <label className="input-label" htmlFor="country">
-                  Country
-                </label>
-                <Select
-                  id="country"
-                  name="country"
-                  options={countries}
-                  value={selectedCountryOption}
-                  onChange={handleCountryChange}
-                  classNamePrefix="react-select"
-                  className={`country-select ${errors.country ? 'input-error' : ''}`}
-                  placeholder="Select a country"
-                  isClearable
-                  styles={{
-                    control: (provided) => ({
-                      ...provided,
-                      minHeight: '44px',
-                      borderColor: errors.country ? '#ef4444' : '#d1d5db',
-                      '&:hover': {
-                        borderColor: errors.country ? '#ef4444' : '#9ca3af'
-                      }
-                    }),
-                    option: (provided, state) => ({
-                      ...provided,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#f3f4f6' : 'white',
-                      color: state.isSelected ? 'white' : 'inherit',
-                    }),
-                    singleValue: (provided, state) => ({
-                      ...provided,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                    }),
-                  }}
-                  formatOptionLabel={({ label, value }) => (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <img
-                        loading="lazy"
-                        width="20"
-                        src={`https://flagcdn.com/w20/${value.toLowerCase()}.png`}
-                        alt={label}
-                        style={{ borderRadius: '2px' }}
+              <div className="input-grid">
+                <div className="input-group">
+                  <label className="input-label" htmlFor="cin">
+                    CIN (ID Document)*
+                  </label>
+                  <div className="file-upload-wrapper">
+                    <label htmlFor="cin" className="file-upload-label">
+                      <div className="file-upload-box">
+                        {previews.cin ? (
+                          <div className="file-preview-container">
+                            <img src={previews.cin} alt="CIN preview" className="file-preview-image" />
+                            <button 
+                              type="button" 
+                              className="file-remove-btn"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleRemoveImage('cin');
+                              }}
+                            >
+                              <FiX />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="file-upload-placeholder">
+                            <FiUpload className="upload-icon" />
+                            <span>Upload ID Document</span>
+                          </div>
+                        )}
+                      </div>
+                      <input
+                        id="cin"
+                        type="file"
+                        name="cin"
+                        onChange={handleFileChange}
+                        className="file-input"
+                        accept="image/jpeg,image/png,application/pdf"
+                        required
                       />
-                      <span>{label}</span>
-                    </div>
-                  )}
-                />
-                {errors.country && <p className="error-text">{errors.country}</p>}
-              </div>
-            </div>
+                    </label>
+                  </div>
+                  {errors.cin && <p className="error-text">{errors.cin}</p>}
+                </div>
 
-            <div className="input-grid">
+                <div className="input-group">
+                  <label className="input-label" htmlFor="certificate_police">
+                    Police Certificate*
+                  </label>
+                  <div className="file-upload-wrapper">
+                    <label htmlFor="certificate_police" className="file-upload-label">
+                      <div className="file-upload-box">
+                        {previews.certificate_police ? (
+                          <div className="file-preview-container">
+                            <img src={previews.certificate_police} alt="Certificate preview" className="file-preview-image" />
+                            <button 
+                              type="button" 
+                              className="file-remove-btn"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleRemoveImage('certificate_police');
+                              }}
+                            >
+                              <FiX />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="file-upload-placeholder">
+                            <FiUpload className="upload-icon" />
+                            <span>Upload Police Certificate</span>
+                          </div>
+                        )}
+                      </div>
+                      <input
+                        id="certificate_police"
+                        type="file"
+                        name="certificate_police"
+                        onChange={handleFileChange}
+                        className="file-input"
+                        accept="image/jpeg,image/png,application/pdf"
+                        required
+                      />
+                    </label>
+                  </div>
+                  {errors.certificate_police && <p className="error-text">{errors.certificate_police}</p>}
+                </div>
+              </div>
+
               <div className="input-group">
-                <label className="input-label" htmlFor="cin">
-                  CIN (ID Document)*
+                <label className="input-label" htmlFor="certificate_police_date">
+                  <FiCalendar className="input-icon" />
+                  Certificate Date*
                 </label>
                 <input
-                  type="text"
-                  name="cin"
-                  value={formData.cin}
+                  type="date"
+                  name="certificate_police_date"
+                  value={formData.certificate_police_date}
                   onChange={handleChange}
-                  className={`input-field ${errors.cin ? 'input-error' : ''}`}
+                  className={`input-field ${errors.certificate_police_date ? 'input-error' : ''}`}
                   required
                 />
-                {errors.cin && <p className="error-text">{errors.cin}</p>}
+                {errors.certificate_police_date && <p className="error-text">{errors.certificate_police_date}</p>}
               </div>
 
               <div className="input-group">
-                <label className="input-label" htmlFor="certificate_police">
-                  Police Certificate*
+                <label className="input-label" htmlFor="bio">
+                  Bio
                 </label>
-                <input
-                  type="text"
-                  name="certificate_police"
-                  value={formData.certificate_police}
+                <textarea
+                  name="bio"
+                  value={formData.bio}
                   onChange={handleChange}
-                  className={`input-field ${errors.certificate_police ? 'input-error' : ''}`}
-                  required
+                  className="input-field"
+                  rows="4"
                 />
-                {errors.certificate_police && <p className="error-text">{errors.certificate_police}</p>}
+                {errors.bio && <p className="error-text">{errors.bio}</p>}
               </div>
             </div>
 
-            <div className="input-group">
-              <label className="input-label" htmlFor="certificate_police_date">
-                <FiCalendar className="input-icon" />
-                Certificate Date*
-              </label>
-              <input
-                type="date"
-                name="certificate_police_date"
-                value={formData.certificate_police_date}
-                onChange={handleChange}
-                className={`input-field ${errors.certificate_police_date ? 'input-error' : ''}`}
-                required
-              />
-              {errors.certificate_police_date && <p className="error-text">{errors.certificate_police_date}</p>}
-            </div>
+            <div className="form-section">
+              <h2 className="section-title">Services & Experience</h2>
+              
+              <div className="input-group">
+                <label className="input-label">
+                  Select Services and Add Experience*
+                </label>
+                
+                <div className="service-selection">
+                  <select
+                    className="service-dropdown"
+                    onChange={handleServiceSelect}
+                    value=""
+                  >
+                    <option value="">Select a service</option>
+                    {availableServices
+                      .filter(service => !formData.services.some(s => s.id === service.id))
+                      .map(service => (
+                        <option key={service.id} value={service.id}>
+                          {service.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
 
-            <div className="input-group">
-              <label className="input-label" htmlFor="bio">
-                Bio
-              </label>
-              <textarea
-                name="bio"
-                value={formData.bio}
-                onChange={handleChange}
-                className="input-field"
-                rows="4"
-              />
-              {errors.bio && <p className="error-text">{errors.bio}</p>}
-            </div>
-
-            <div className="input-group">
-              <label className="input-label" htmlFor="experience">
-                Experience (years)
-              </label>
-              <input
-                type="number"
-                name="experience"
-                value={formData.experience}
-                onChange={handleChange}
-                className="input-field"
-                min="0"
-              />
-              {errors.experience && <p className="error-text">{errors.experience}</p>}
-            </div>
-
-            <div className="input-group">
-              <label className="input-label">
-                Profile Photo
-              </label>
-              <div className="file-upload-wrapper">
-                <label htmlFor="photo" className="file-upload-label">
-                  <div className="file-upload-box">
-                    {previews.photo ? (
-                      <div className="file-preview">
-                        <img src={previews.photo} alt="Profile preview" className="file-preview-image" />
-                        <span className="file-name">{files.photo?.name || 'Selected file'}</span>
+                <div className="selected-services">
+                  {formData.services.map(service => (
+                    <div key={service.id} className="service-item">
+                      <div className="service-info">
+                        <span>{service.name}</span>
                         <button 
                           type="button" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeFile('photo');
-                          }}
-                          className="file-remove-button"
+                          onClick={() => removeService(service.id)}
+                          className="remove-service"
                         >
                           <FiX />
                         </button>
                       </div>
-                    ) : formData.current_photo ? (
-                      <div className="file-preview">
-                        <img 
-                          src={`${process.env.REACT_APP_API_URL}/storage/${formData.current_photo}`} 
-                          alt="Current profile" 
-                          className="file-preview-image" 
+                      <div className="service-experience">
+                        <label>Years of Experience:</label>
+                        <input
+                          type="number"
+                          value={service.pivot.experience}
+                          onChange={(e) => handleServiceExperienceChange(service.id, e.target.value)}
+                          min="0"
+                          required
                         />
-                        <span className="file-name">Current photo</span>
                       </div>
-                    ) : (
-                      <div className="file-upload-placeholder">
-                        <FiUpload className="upload-icon" />
-                        <span>Upload Profile Photo</span>
-                      </div>
-                    )}
-                  </div>
-                  <input
-                    id="photo"
-                    type="file"
-                    name="photo"
-                    onChange={handleFileChange}
-                    className="file-input"
-                    accept="image/*"
-                  />
-                </label>
+                    </div>
+                  ))}
+                </div>
+                {errors.services && <p className="error-text">{errors.services}</p>}
               </div>
-              {errors.photo && <p className="error-text">{errors.photo}</p>}
             </div>
-          </div>
+          </>
         )}
 
         <div className="form-actions">
